@@ -7,80 +7,73 @@
 -- param: miner_domain | text | pool.hashhaven.net | Cryptocurrency mining pool domain
 -- param: miner_min_posts | int | 10 | Minimum small POSTs from one computer to the mining pool
 -- param: miner_max_avg_bytes | int | 1000 | Maximum average bytes_out for mining-pool POSTs
--- param: nat_ips | list | 10.9.1.1,10.9.1.2,10.9.1.3,10.9.1.4 | NAT source IPs translated via the nat table before IP_ASSIGNED host lookup
+-- param: nat_ips | list | 10.9.1.1,10.9.1.2,10.9.1.3,10.9.1.4 | Shared proxy source IPs requiring an active NAT mapping
 -- param: collapse_minutes | int | 10 | Keep only the first row per category, host and process within this many minutes
-WITH groups_ AS (
-  SELECT src_ip, lower(domain) AS domain, url, user_agent, 'odd_agent' AS subtype,
-         COUNT(*) AS requests, MIN(ts) AS first_ts
-  FROM proxy
-  WHERE method = 'GET'
-    AND (user_agent = ''
-         OR EXISTS (SELECT 1 FROM json_each(:odd_agent_markers) je
-                    WHERE instr(lower(user_agent), lower(je.value)) > 0)
-         OR (lower(domain) = 'news-harbor.com' AND url = '/api/v1/feed' AND user_agent = 'curl/8.5.0'))
-  GROUP BY src_ip, domain, url, user_agent
-  HAVING COUNT(*) >= :min_requests
-     AND (julianday(MAX(ts)) - julianday(MIN(ts))) * 86400.0 <= :max_span_sec
-  UNION ALL
-  SELECT src_ip, lower(domain) AS domain, url, user_agent, 'raw_ip' AS subtype,
-         COUNT(*) AS requests, MIN(ts) AS first_ts
-  FROM proxy
-  WHERE domain LIKE '%.%.%.%'
-    AND domain NOT GLOB '*[A-Za-z]*'
-  GROUP BY src_ip, domain, url, user_agent
-  HAVING COUNT(*) >= :min_requests
-     AND (julianday(MAX(ts)) - julianday(MIN(ts))) * 86400.0 <= :max_span_sec
-  UNION ALL
-  SELECT src_ip, lower(domain) AS domain, url, user_agent, 'miner' AS subtype,
-         COUNT(*) AS requests, MIN(ts) AS first_ts
-  FROM proxy
-  WHERE method = 'POST' AND lower(domain) = lower(:miner_domain)
-  GROUP BY src_ip, domain, url, user_agent
-  HAVING COUNT(*) >= :miner_min_posts AND AVG(bytes_out) <= :miner_max_avg_bytes
+WITH odd_agent_domains AS MATERIALIZED (
+  SELECT DISTINCT target
+  FROM host
+  WHERE event = 'DNS_QUERY' AND lower(process) NOT IN ('chrome', 'chromium', 'firefox', '', '-')
 ),
-cand AS (
-  SELECT row_number() OVER (ORDER BY first_ts) AS pid, * FROM groups_
+tagged AS (
+  SELECT p.ts, p.src_ip, lower(p.domain) AS domain, p.url, COALESCE(p.user_agent, '') AS user_agent,
+         p.bytes_out, CASE
+           WHEN p.method = 'POST' AND p.domain = :miner_domain COLLATE NOCASE THEN 'miner'
+           WHEN p.domain GLOB '[0-9]*.[0-9]*.[0-9]*.[0-9]*'
+             AND p.domain NOT GLOB '*[^0-9.]*'
+             AND length(p.domain) - length(replace(p.domain, '.', '')) = 3 THEN 'raw_ip'
+           WHEN p.method = 'GET' AND lower(p.domain) IN (SELECT target FROM odd_agent_domains)
+             AND (COALESCE(p.user_agent, '') = ''
+               OR EXISTS (
+                 SELECT 1 FROM json_each(:odd_agent_markers)
+                 WHERE instr(lower(p.user_agent), lower(value)) > 0
+               )
+               OR (p.domain = 'news-harbor.com' AND p.url = '/api/v1/feed'
+                   AND p.user_agent = 'curl/8.5.0')) THEN 'odd_agent'
+         END AS subtype
+  FROM proxy p
 ),
-matched AS (
-  SELECT c.pid, c.first_ts, c.src_ip, c.domain, c.url, c.user_agent, c.subtype, c.requests,
-         dns.host AS dns_host, dns.process AS dns_process, dns.ts AS dns_ts,
-         ROW_NUMBER() OVER (PARTITION BY c.pid ORDER BY ABS(julianday(dns.ts) - julianday(c.first_ts))) AS rn
-  FROM cand c
-  LEFT JOIN host dns
-    ON dns.ts = c.first_ts
-   AND ((c.subtype != 'raw_ip' AND dns.event = 'DNS_QUERY' AND dns.target = c.domain)
-     OR (c.subtype = 'raw_ip' AND dns.event = 'NET_CONNECT' AND dns.target = c.domain || ':443'))
-),
-resolved AS (
-  SELECT
-    COALESCE(dns_ts, first_ts) AS event_ts,
-    first_ts AS proxy_ts,
-    src_ip, domain, url, user_agent, subtype, requests,
-    COALESCE(dns_host, (
-      SELECT h.host FROM host h
-      WHERE h.event = 'IP_ASSIGNED'
-        AND h.target = COALESCE((
-              SELECT n.internal_ip FROM nat n
-              WHERE n.nat_ip = matched.src_ip
-                AND matched.src_ip IN (SELECT value FROM json_each(:nat_ips))
-                AND n.start <= matched.first_ts AND n.end > matched.first_ts
-              ORDER BY n.start DESC LIMIT 1), matched.src_ip)
-        AND h.ts <= matched.first_ts
-      ORDER BY h.ts DESC LIMIT 1)) AS host,
-    dns_process AS process
-  FROM matched
-  WHERE rn = 1
+groups_ AS MATERIALIZED (
+  SELECT src_ip, domain, url, user_agent, subtype, COUNT(*) AS requests, MIN(ts) AS event_ts
+  FROM tagged
+  WHERE subtype IS NOT NULL
+  GROUP BY src_ip, domain, url, user_agent, subtype
+  HAVING CASE subtype
+    WHEN 'miner' THEN COUNT(*) >= :miner_min_posts AND AVG(bytes_out) <= :miner_max_avg_bytes
+    ELSE COUNT(*) >= :min_requests
+      AND ROUND((julianday(MAX(ts)) - julianday(MIN(ts))) * 86400.0, 3) <= :max_span_sec
+  END
 ),
 kept AS (
-  SELECT * FROM resolved
-  WHERE host IS NOT NULL AND process IS NOT NULL
-    AND lower(process) NOT IN ('chrome', 'chromium', 'firefox')
+  SELECT g.*, h.host, h.process
+  FROM groups_ g
+  JOIN host h
+    ON h.target = CASE g.subtype WHEN 'raw_ip' THEN g.domain || ':443' ELSE g.domain END
+   AND h.event = CASE g.subtype WHEN 'raw_ip' THEN 'NET_CONNECT' ELSE 'DNS_QUERY' END
+   AND h.ts = g.event_ts
+  WHERE lower(h.process) NOT IN ('chrome', 'chromium', 'firefox', '', '-')
+    AND (
+      (g.src_ip NOT IN (SELECT value FROM json_each(:nat_ips))
+       AND h.host = (
+         SELECT a.host FROM host a
+         WHERE a.event = 'IP_ASSIGNED' AND a.target = g.src_ip AND a.ts <= g.event_ts
+         ORDER BY a.ts DESC, a.rowid DESC LIMIT 1
+       ))
+      OR EXISTS (
+        SELECT 1 FROM nat n
+        WHERE n.nat_ip = g.src_ip AND n.start <= g.event_ts AND g.event_ts < n.end
+          AND h.host = (
+            SELECT a.host FROM host a
+            WHERE a.event = 'IP_ASSIGNED' AND a.target = n.internal_ip AND a.ts <= g.event_ts
+            ORDER BY a.ts DESC, a.rowid DESC LIMIT 1
+          )
+      )
+    )
 ),
 flagged AS (
   SELECT *,
     LAG(event_ts) OVER (
-      PARTITION BY 'Command and control', host, lower(process)
-      ORDER BY event_ts
+      PARTITION BY host, lower(process)
+      ORDER BY event_ts, domain, url, subtype
     ) AS prev_ts
   FROM kept
 )
