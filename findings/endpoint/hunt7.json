@@ -1,0 +1,117 @@
+{
+  "team_id": "11",
+  "findings": [
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-12T16:36:50.362Z",
+      "host": "WS-0512",
+      "user": "rachel19",
+      "process": "updater"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-12T22:34:37.776Z",
+      "host": "WS-9604",
+      "user": "jack369",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-13T01:57:13.931Z",
+      "host": "WS-3764",
+      "user": "tina144",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-13T04:25:27.525Z",
+      "host": "WS-1244",
+      "user": "victor47",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-13T07:38:33.173Z",
+      "host": "WS-4190",
+      "user": "dave161",
+      "process": "updater"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-13T10:31:36.820Z",
+      "host": "LAB-02",
+      "user": "labuser4",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-13T14:29:23.758Z",
+      "host": "WS-7203",
+      "user": "alice277",
+      "process": "updater"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-13T15:56:17.211Z",
+      "host": "WS-9503",
+      "user": "mia365",
+      "process": "firefox"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-14T02:39:45.602Z",
+      "host": "WS-2938",
+      "user": "zack112",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-14T03:57:24.822Z",
+      "host": "WS-9398",
+      "user": "leo361",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-15T13:47:42.026Z",
+      "host": "WS-3032",
+      "user": "paula116",
+      "process": "firefox"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-15T20:47:54.895Z",
+      "host": "WS-9152",
+      "user": "zack351",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-15T21:48:40.542Z",
+      "host": "WS-3688",
+      "user": "victor141",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-15T22:50:39.233Z",
+      "host": "WS-5830",
+      "user": "frank224",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-15T23:17:29.332Z",
+      "host": "WS-7676",
+      "user": "frank295",
+      "process": "chrome"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-16T11:28:01.033Z",
+      "host": "WS-6411",
+      "user": "omar246",
+      "process": "firefox"
+    }
+  ]
+}
