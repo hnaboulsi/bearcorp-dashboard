@@ -2,3 +2,4 @@ dataset/
 findings.json
 __pycache__/
 .DS_Store
+SPEC*.md

@@ -16,9 +16,18 @@ Use it: pick a detection in the left sidebar, adjust its parameters (findings re
 
 ## Add a detection
 
-1. Create `detections/<role>_h<N>_<slug>.sql`, e.g. `detections/dns_h2_beaconing.sql` (roles: `dns`, `web`, `endpoint`, `identity`).
-2. Write the header comments and SQL below. It appears in the sidebar on the next page load.
-3. Run it in the dashboard, check the findings, export, and validate:
+Detections live in per-role folders: `detections/dns/`, `detections/web/`, `detections/endpoint/`, `detections/identity/` (files directly in `detections/` are also discovered). The server discovers `*.sql` recursively on every request — no restart needed — and the sidebar groups by role folder (falling back to the `-- role:` header).
+
+Through the dashboard (recommended):
+
+1. Open the dashboard and click **Add detection** in the sidebar.
+2. Pick your role, name, category (one of the 9 exact categories or `multiple`), add param rows (name, `int|float|text|list`, default, description), and write SQL in the prefilled template (required columns + user-at-time subquery). Or use **Upload .sql file** to load an existing file into the form.
+3. Click **Test** — it runs the SQL read-only (60 s timeout) and shows columns, first 50 rows, count, time, and a pass/fail checklist (required columns, valid categories, parseable timestamps, hosts in `assets`, users in `users` or `'none'`). Fix any failures.
+4. Click **Save** (tick **overwrite** only to replace an existing file). This writes `detections/<role>/<role>_<slug>.sql` with a generated header; it then appears in the sidebar. **Edit SQL** on an existing detection reopens the modal prefilled (save asks for overwrite confirmation).
+
+Or by hand: create `detections/<role>/<role>_<slug>.sql`, e.g. `detections/dns/dns_h2_beaconing.sql`, with the header + SQL below.
+
+Then run it in the dashboard, check the findings, export, and validate:
 
 ```bash
 python3 -I /path/to/berkeley_hackathon_validate.py findings.json --data /path/to/bearcorp.db
@@ -43,4 +52,14 @@ Example: see [endpoint_h1_persistence.sql](detections/endpoint_h1_persistence.sq
 
 ## Team workflow
 
-Each person adds/edits **only their own** `detections/*.sql` files and pushes — never edit `server.py` or `index.html` to add a hunt, and never commit the dataset or `findings.json`. The shared `team_id` (top bar, default `11`) goes into every export so the scorer can merge the team's files.
+1. Open the dashboard, click **Add detection**, write/test with **Test**, then **Save** (see above).
+2. Commit and push only your role folder:
+
+```bash
+git add detections/<role>/
+git commit -m "Add <role> detection: <name>"
+git pull --rebase
+git push
+```
+
+Each person only touches their own role folder (`detections/dns/`, `detections/web/`, `detections/endpoint/`, or `detections/identity/`), so merges never conflict. Never edit `server.py` or `index.html` to add a hunt, and never commit the dataset or `findings.json`. The shared `team_id` (top bar, default `11`) goes into every export so the scorer can merge the team's files.

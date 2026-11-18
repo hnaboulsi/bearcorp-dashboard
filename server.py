@@ -30,11 +30,17 @@ def connect():
     conn.set_progress_handler(handler, 1000)
     return conn
 
+ROLES = {"dns": "DNS", "web": "Web", "endpoint": "Endpoint", "identity": "Identity"}
+
 def parse_detection(path):
     name, role, category, params = path.stem, "", "", []
+    try: rel = path.resolve().relative_to(DETECTIONS.resolve()).as_posix()
+    except Exception: rel = path.name
+    folder = rel.split("/")[0] if "/" in rel else ""
+    folder_role = ROLES.get(folder.lower(), "") if folder else ""
     sql_lines = []
     try: text = path.read_text(encoding="utf-8", errors="replace")
-    except OSError as e: return {"file": path.name, "name": path.stem, "role": "", "category": "", "params": [], "error": str(e)}
+    except OSError as e: return {"file": rel, "name": path.stem, "role": folder_role, "category": "", "params": [], "error": str(e)}
     for line in text.splitlines():
         s = line.strip()
         if s.startswith("--"):
@@ -55,16 +61,102 @@ def parse_detection(path):
                     # coerce default display value
                     params.append({"name": pname, "type": ptype, "default": default, "description": desc})
                 continue
-    return {"file": path.name, "name": name, "role": role, "category": category, "params": params}
+    return {"file": rel, "name": name, "role": folder_role or role, "header_role": role, "folder": folder.lower() if folder_role else "", "category": category, "params": params}
 
 def list_detections():
     if not DETECTIONS.exists(): return []
-    return [parse_detection(p) for p in sorted(DETECTIONS.glob("*.sql"))]
+    return [parse_detection(p) for p in sorted(DETECTIONS.rglob("*.sql"))]
 
 def safe_path(fname):
-    if not fname or Path(fname).name != fname or not fname.endswith(".sql"): return None
-    p = DETECTIONS / fname
+    if not fname or not str(fname).endswith(".sql"): return None
+    parts = Path(str(fname)).parts
+    if any(p in ("..", "") for p in parts) or Path(str(fname)).is_absolute(): return None
+    p = (DETECTIONS / str(fname)).resolve()
+    try: p.relative_to(DETECTIONS.resolve())
+    except Exception: return None
     return p if p.exists() else None
+
+def coerce_typed(ptype, v, default=""):
+    t = str(ptype or "text").lower()
+    try:
+        if t == "int": return int(float(v)) if isinstance(v, str) and v.strip() else (int(v) if v not in (None, "") else int(float(default or 0)))
+        if t == "float": return float(v) if v not in (None, "") else float(default or 0)
+        if t == "list":
+            if isinstance(v, list): return json.dumps([str(x).strip() for x in v])
+            s = str(v or "").strip()
+            if s.startswith("["):
+                try: return json.dumps([str(x) for x in json.loads(s)])
+                except Exception: pass
+            return json.dumps([x.strip() for x in s.split(",") if x.strip()] if s else [])
+        return "" if v is None else str(v)
+    except Exception: return default
+
+def run_sql(sql, raw_params, param_defs=None):
+    params = {}
+    defs = {p["name"]: p for p in (param_defs or []) if isinstance(p, dict) and p.get("name")}
+    for k, v in (raw_params or {}).items():
+        d = defs.get(k)
+        params[k] = coerce_typed(d.get("type", "text"), v, d.get("default", "")) if d else (json.dumps([str(x) for x in v]) if isinstance(v, list) else v)
+    for n, d in defs.items():
+        if n not in params: params[n] = coerce_typed(d.get("type", "text"), d.get("default", ""), d.get("default", ""))
+    t0 = time.time(); conn = connect()
+    try:
+        cur = conn.execute(sql, params)
+        cols = [d[0] for d in cur.description] if cur.description else []
+        rows = [dict(r) for r in cur.fetchall()]
+        return cols, rows, round((time.time()-t0)*1000), None, conn
+    except sqlite3.Error as e:
+        conn.close()
+        return [], [], round((time.time()-t0)*1000), str(e), None
+
+def test_detection(sql, raw_params, param_defs=None):
+    cols, rows, ms, err, conn = run_sql(sql or "", raw_params, param_defs)
+    if err: return {"columns": [], "rows": [], "count": 0, "ms": ms, "error": err, "checklist": [{"label": "Query runs without error", "pass": False, "detail": err}]}
+    try:
+        req = {"category", "timestamp", "host", "user", "process"}
+        checklist = [{"label": "Required columns present (category, timestamp, host, user, process)", "pass": req.issubset(set(cols)), "detail": "missing: " + ", ".join(sorted(req - set(cols))) if not req.issubset(set(cols)) else "all present"}]
+        bad_cat = sorted({str(r.get("category")) for r in rows if r.get("category") not in VALID})
+        checklist.append({"label": "Categories valid", "pass": not bad_cat, "detail": ("invalid: " + ", ".join(bad_cat)) if bad_cat else (f"all {len(rows)} row(s) valid" if rows else "no rows")})
+        bad_ts = 0
+        for r in rows:
+            try: parse_ts(str(r.get("timestamp", "")))
+            except Exception: bad_ts += 1
+        checklist.append({"label": "Timestamps parse", "pass": bad_ts == 0, "detail": f"{bad_ts} unparseable" if bad_ts else (f"all {len(rows)} row(s) parse" if rows else "no rows")})
+        hosts = {r[0] for r in conn.execute("SELECT hostname FROM assets").fetchall()} if conn else set()
+        users = {str(r[0]).lower() for r in conn.execute("SELECT user FROM users").fetchall()} if conn else set()
+        bad_h = sorted({str(r.get("host")) for r in rows if r.get("host") not in hosts})
+        checklist.append({"label": "Hosts exist in assets", "pass": not bad_h, "detail": ("missing: " + ", ".join(bad_h[:10])) if bad_h else (f"all {len(rows)} row(s) found" if rows else "no rows")})
+        bad_u = sorted({str(r.get("user")) for r in rows if str(r.get("user", "")).lower() not in users and str(r.get("user", "")).lower() != "none"})
+        checklist.append({"label": "Users exist in users (or 'none')", "pass": not bad_u, "detail": ("missing: " + ", ".join(bad_u[:10])) if bad_u else (f"all {len(rows)} row(s) found or 'none'" if rows else "no rows")})
+    finally:
+        if conn: conn.close()
+    return {"columns": cols, "rows": rows[:50], "count": len(rows), "ms": ms, "error": None, "checklist": checklist}
+
+def save_detection(body):
+    role = str(body.get("role", "")).strip().lower()
+    if role not in ROLES: return {"error": f"invalid role: {role!r} (expected dns, web, endpoint or identity)"}, 400
+    raw_slug = str(body.get("slug", "") or "").strip().lower()
+    slug = re.sub(r"[^a-z0-9_]+", "_", raw_slug).strip("_")
+    slug = re.sub(r"_+", "_", slug)
+    if slug.startswith(role + "_"): slug = slug[len(role)+1:]
+    if not slug: return {"error": "slug is required (sanitised to [a-z0-9_])"}, 400
+    fname = f"{role}_{slug}.sql"
+    folder = DETECTIONS / role; folder.mkdir(parents=True, exist_ok=True)
+    dest = folder / fname
+    if dest.exists() and not body.get("overwrite"): return {"error": f"file already exists: {role}/{fname} (tick overwrite to replace)", "file": f"{role}/{fname}"}, 409
+    name = str(body.get("name", "") or slug).strip()
+    category = str(body.get("category", "") or "").strip()
+    if category != "multiple" and category not in VALID: return {"error": f"invalid category: {category!r}"}, 400
+    sql = str(body.get("sql", "") or "")
+    if not sql.strip(): return {"error": "sql is required"}, 400
+    # strip any existing generated header lines from the SQL body
+    body_lines = [ln for ln in sql.splitlines() if not re.match(r"\s*--\s*(name|role|category|param)\s*:", ln, re.I)]
+    header = [f"-- name: {name}", f"-- role: {ROLES[role]}", f"-- category: {category}"]
+    for p in (body.get("params") or []):
+        if not isinstance(p, dict) or not str(p.get("name", "")).strip(): continue
+        header.append(f"-- param: {str(p['name']).strip()} | {str(p.get('type','text')).strip().lower()} | {p.get('default','')} | {p.get('description','')}")
+    dest.write_text("\n".join(header) + "\n" + "\n".join(body_lines).lstrip("\n") + ("\n" if not sql.endswith("\n") else ""), encoding="utf-8")
+    return {"file": f"{role}/{fname}", "name": name, "role": ROLES[role], "category": category, "slug": slug}, 200
 
 def coerce_params(det, raw):
     raw = raw or {}
@@ -149,6 +241,13 @@ class H(BaseHTTPRequestHandler):
             try: self.send_json({"detections": list_detections()})
             except Exception as e: self.send_json({"detections": [], "error": str(e)}, 500)
             return
+        if u.path == "/api/detection":
+            fname = (parse_qs(u.query).get("file") or [""])[0]
+            p = safe_path(fname)
+            if not p: self.send_json({"error": "detection not found"}, 404); return
+            det = parse_detection(p)
+            det["sql"] = p.read_text(encoding="utf-8", errors="replace")
+            self.send_json(det); return
         if u.path == "/api/user":
             name = (parse_qs(u.query).get("name") or [""])[0]
             conn = connect()
@@ -165,6 +264,22 @@ class H(BaseHTTPRequestHandler):
         body = self.read_body()
         if u.path == "/api/run":
             self.send_json(run_detection(body.get("file",""), body.get("params") or {})); return
+        if u.path == "/api/test":
+            pdefs = body.get("param_defs") or body.get("paramDefs") or []
+            # also accept params as list of defs with values
+            if not pdefs and "-- param:" in body.get("sql", ""):
+                # pasted/uploaded SQL: take the param defaults from its own header
+                import tempfile
+                with tempfile.NamedTemporaryFile("w", suffix=".sql", delete=False) as fh:
+                    fh.write(body["sql"])
+                try:
+                    pdefs = parse_detection(Path(fh.name)).get("params", [])
+                finally:
+                    os.unlink(fh.name)
+            self.send_json(test_detection(body.get("sql",""), body.get("params") or {}, pdefs)); return
+        if u.path == "/api/save":
+            obj, status = save_detection(body)
+            self.send_json(obj, status); return
         if u.path == "/api/timeline":
             host, ts = body.get("host",""), body.get("ts") or body.get("timestamp","")
             try: minutes = float(body.get("minutes", 30))
@@ -194,7 +309,7 @@ class H(BaseHTTPRequestHandler):
                     try:
                         item = {"category": r["category"], "timestamp": r["timestamp"], "host": r["host"], "user": r["user"], "process": r["process"]}
                     except KeyError: continue
-                    if "evidence" in r and r["evidence"] is not None: item["evidence"] = r["evidence"]
+                    if "evidence" in r and r["evidence"] is not None: item["evidence"] = r["evidence"] if isinstance(r["evidence"], list) else [str(r["evidence"])]
                     if "confidence" in r and r["confidence"] is not None: item["confidence"] = r["confidence"]
                     key = (item["category"], item["timestamp"], item["host"], str(item["user"]).lower(), str(item["process"]).lower())
                     if key in seen: continue

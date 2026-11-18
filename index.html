@@ -23,6 +23,11 @@ th{cursor:pointer;color:#9a9ca8;font-weight:550;white-space:nowrap}tr.finding{cu
 #drawer.open{transform:none}.ev{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600}
 .kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:13px}.kv dt{color:#8b8d98}.err{color:#ff7b72}.ok{color:#3fb950}
 progress{width:160px;accent-color:#7c83ff}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px}
+#modal.open{display:flex}.mbox{background:#121316;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px;width:min(860px,96vw)}
+#modal textarea{width:100%;background:#0b0c0e;color:#e8e9ec;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+#modal input[type=text],#modal select{background:#141518;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;color:inherit}
+.prow{display:grid;grid-template-columns:1.2fr .7fr 1fr 2fr auto;gap:6px;margin:5px 0}.check li.pass{color:#3fb950}.check li.fail{color:#ff7b72}
 </style></head><body>
 <header><h1>Bearcorp threat hunt</h1><span class="mono" id="total" style="color:#8b8d98"></span><span class="sp"></span>
 <label style="margin:0">Team <input type="text" id="team" value="11" size="4"></label>
@@ -31,6 +36,18 @@ progress{width:160px;accent-color:#7c83ff}
 <div id="app"><aside id="side"><div style="color:#8b8d98">Loading detections…</div></aside>
 <main id="main"><div class="panel">Select a detection on the left, then Run. Change any parameter and findings refresh automatically.</div></main></div>
 <div id="drawer"></div>
+<div id="modal"><div class="mbox"><button class="ghost" id="mClose" style="float:right">✕</button><h3 id="mTitle" style="margin-top:0">Add detection</h3>
+<label>Role <select id="mRole"><option value="dns">DNS</option><option value="web">Web</option><option value="endpoint">Endpoint</option><option value="identity">Identity</option></select></label>
+<label>Name <input type="text" id="mName" style="width:min(420px,90%)"></label>
+<label>Slug <small>[a-z0-9_], file becomes &lt;role&gt;_&lt;slug&gt;.sql</small><br><input type="text" id="mSlug" style="width:min(420px,90%)"></label>
+<label>Category <select id="mCat"></select></label>
+<label>Upload .sql file <input type="file" id="mUpload" accept=".sql"></label>
+<div style="margin:10px 0 4px;font-size:12px;color:#9a9ca8">Params (name, type, default, description)</div><div id="mParams"></div>
+<button class="ghost" id="mAddParam" type="button">+ Add param</button>
+<label>SQL</label><textarea id="mSql" rows="16" spellcheck="false"></textarea>
+<label style="display:inline"><input type="checkbox" id="mOverwrite"> overwrite existing file</label>
+<div style="margin-top:10px;display:flex;gap:8px"><button id="mTest" type="button">Test</button><button id="mSave" type="button">Save</button><span id="mMsg"></span></div>
+<div id="mResult"></div></div></div>
 <script>
 const $=s=>document.querySelector(s);let dets=[],state={},sel=null,sortK=null,sortD=1,filter='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -40,10 +57,11 @@ function total(){let n=0;for(const k in state)n+=(state[k].rows||[]).length;$('#
 async function load(){const j=await api('/api/detections');dets=j.detections||[];dets.forEach(d=>{if(!state[d.file])state[d.file]={enabled:true,params:{},rows:null,cols:[],ms:null,dropped:0}});
  if(!sel&&dets.length)sel=dets[0].file;renderSide();renderMain()}
 function renderSide(){const g={};dets.forEach(d=>{(g[d.role||'Other']=g[d.role||'Other']||[]).push(d)});
- $('#side').innerHTML=Object.keys(g).sort().map(r=>`<h3>${esc(r)}</h3>`+g[r].map(d=>{const s=state[d.file];
+ $('#side').innerHTML=`<button id="addDet" style="width:100%">+ Add detection</button>`+Object.keys(g).sort().map(r=>`<h3>${esc(r)}</h3>`+g[r].map(d=>{const s=state[d.file];
   return `<div class="det ${d.file===sel?'sel':''}" data-f="${esc(d.file)}"><input type="checkbox" data-en="${esc(d.file)}" ${s.enabled?'checked':''}> <span class="nm">${esc(d.name)}</span><span class="cnt">${s.rows?s.rows.length:''}</span><br><span class="chip">${esc(d.category)}</span></div>`}).join('')).join('')||'No detections yet — add a .sql file to detections/';
  document.querySelectorAll('.det').forEach(e=>e.onclick=ev=>{if(ev.target.type==='checkbox')return;sel=e.dataset.f;renderSide();renderMain()});
- document.querySelectorAll('[data-en]').forEach(c=>c.onchange=()=>{state[c.dataset.en].enabled=c.checked})}
+ document.querySelectorAll('[data-en]').forEach(c=>c.onchange=()=>{state[c.dataset.en].enabled=c.checked});
+ const ab=$('#addDet');if(ab)ab.onclick=()=>openModal()}
 function cur(){return dets.find(d=>d.file===sel)}
 let timer;
 function renderMain(){const d=cur();if(!d){$('#main').innerHTML='';return}const s=state[d.file],p=paramsOf(d);
@@ -54,11 +72,11 @@ function renderMain(){const d=cur();if(!d){$('#main').innerHTML='';return}const 
  <span class="chip">${esc(d.category)}</span> <span class="mono" style="color:#8b8d98">${esc(d.file)}</span>
  ${(d.params||[]).map(pp=>`<label>${esc(pp.name)} <small>${esc(pp.type)} — ${esc(pp.description)}</small><br>
    <input type="text" data-p="${esc(pp.name)}" value="${esc(p[pp.name])}" style="width:min(420px,90%)"></label>`).join('')}
- <div style="margin-top:10px"><button id="run">Run</button> ${s.ms!=null?`<span class="mono">${s.ms} ms · ${s.rows.length} findings${s.dropped?` · <span class="err">${s.dropped} dropped (invalid category)</span>`:''}</span>`:''} <span id="rerr" class="err"></span></div></div>
+ <div style="margin-top:10px"><button id="run">Run</button> <button class="ghost" id="editSql">Edit SQL</button> ${s.ms!=null?`<span class="mono">${s.ms} ms · ${s.rows.length} findings${s.dropped?` · <span class="err">${s.dropped} dropped (invalid category)</span>`:''}</span>`:''} <span id="rerr" class="err"></span></div></div>
  <div class="panel"><input type="text" id="filt" placeholder="Filter findings…" value="${esc(filter)}" style="width:260px">
  <div style="overflow:auto;margin-top:10px"><table><thead><tr>${['category','timestamp','host','user','process','evidence',...extra].map(c=>`<th data-s="${esc(c)}">${esc(c)} ↕</th>`).join('')}</tr></thead>
  <tbody>${rows.map((r,i)=>`<tr class="finding" data-i="${(s.rows||[]).indexOf(r)}">${['category','timestamp','host','user','process','evidence',...extra].map(c=>`<td class="${['timestamp','host','process'].includes(c)?'mono':''}">${esc(r[c])}</td>`).join('')}</tr>`).join('')||'<tr><td>No rows. Run the detection.</td></tr>'}</tbody></table></div></div>`;
- $('#run').onclick=()=>run(d);
+ $('#run').onclick=()=>run(d);const eb=$('#editSql');if(eb)eb.onclick=()=>openModal(d);
  document.querySelectorAll('[data-p]').forEach(inp=>inp.oninput=()=>{state[d.file].params[inp.dataset.p]=inp.value;clearTimeout(timer);timer=setTimeout(()=>run(d),600)});
  $('#filt').oninput=e=>{filter=e.target.value.toLowerCase();renderMain();const f=$('#filt');f.focus();f.setSelectionRange(f.value.length,f.value.length)};
  document.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;sortD=sortK===k?-sortD:1;sortK=k;renderMain()});
@@ -84,5 +102,42 @@ async function openDrawer(d,r){if(!r)return;const dr=$('#drawer');dr.classList.a
  $('#u').innerHTML=uj.user?`<dl class="kv">${Object.entries(uj.user).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:'<span style="color:#8b8d98">Not in users table.</span>';
  $('#tl').innerHTML=tj.error?`<span class="err">${esc(tj.error)}</span>`:`<table><tbody>${(tj.rows||[]).map(t=>{const hit=t.ts===r.timestamp&&t.process===r.process;
   return `<tr ${hit?'style="background:rgba(124,131,255,.18)"':''}><td class="mono">${esc(t.ts)}</td><td><span class="ev" style="background:${EC[t.event]||'#333'}33;color:${EC[t.event]||'#aaa'}">${esc(t.event)}</span></td><td class="mono">${esc(t.user)}</td><td class="mono">${esc(t.process)}</td><td class="mono">${esc(t.target)}</td></tr>`}).join('')||'<tr><td>No events.</td></tr>'}</tbody></table>`}
+const CATS=["Known-bad indicators","Command and control","Reconnaissance","Data theft","Deceptive domains","Malware delivery","Host intrusion signs","Lateral movement","Credential abuse","multiple"];
+$('#mCat').innerHTML=CATS.map(c=>`<option>${esc(c)}</option>`).join('');
+const TEMPLATE=`SELECT
+  'Host intrusion signs' AS category,
+  h.ts AS timestamp,
+  h.host,
+  COALESCE((SELECT l.user FROM host l
+            WHERE l.event = 'LOGIN' AND l.host = h.host AND l.ts <= h.ts
+              AND NOT EXISTS (SELECT 1 FROM host o
+                              WHERE o.event = 'LOGOUT' AND o.host = h.host
+                                AND o.ts > l.ts AND o.ts <= h.ts)
+            ORDER BY l.ts DESC LIMIT 1), 'none') AS user,
+  h.process,
+  h.target AS evidence
+FROM host h
+WHERE h.event = 'CMD'
+ORDER BY h.ts
+LIMIT 100`;
+let editing=null;
+function slugify(s){return String(s||'').toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'')}
+function paramRow(p){p=p||{name:'',type:'text',default:'',description:''};const d=document.createElement('div');d.className='prow';d.innerHTML=`<input type=text placeholder=name value="${esc(p.name)}"><select>${['int','float','text','list'].map(t=>`<option ${t===p.type?'selected':''}>${t}</option>`).join('')}</select><input type=text placeholder=default value="${esc(p.default)}"><input type=text placeholder=description value="${esc(p.description)}"><button class="ghost" type=button>✕</button>`;d.querySelector('button').onclick=()=>d.remove();return d}
+function readParams(){return [...document.querySelectorAll('.prow')].map(r=>{const i=r.querySelectorAll('input,select');return{name:i[0].value.trim(),type:i[1].value,default:i[2].value,description:i[3].value}}).filter(p=>p.name)}
+function modalParams(){const o={};readParams().forEach(p=>{if(p.type==='int')o[p.name]=parseInt(p.default)||0;else if(p.type==='float')o[p.name]=parseFloat(p.default)||0;else o[p.name]=p.default});return o}
+function parseHeader(text){const out={params:[]};let m;const re=/^--\s*(name|role|category|param)\s*:\s*(.+)$/gmi;while(m=re.exec(text)){const k=m[1].toLowerCase(),v=m[2].trim();if(k==='param'){const[a,b,c,d]=v.split('|').map(x=>x.trim());out.params.push({name:a,type:b||'text',default:c||'',description:d||''})}else out[k]=v}return out}
+function fillForm(h,sql,roleKey){if(h.name)$('#mName').value=h.name;if(h.category)$('#mCat').value=h.category;const rk=(roleKey||'').toLowerCase();if(['dns','web','endpoint','identity'].includes(rk))$('#mRole').value=rk;else if(h.role&&['dns','web','endpoint','identity'].includes(h.role.toLowerCase()))$('#mRole').value=h.role.toLowerCase();$('#mParams').innerHTML='';(h.params||[]).forEach(p=>$('#mParams').appendChild(paramRow(p)));if(sql!=null)$('#mSql').value=sql;if(!$('#mSlug').value&&h.name)$('#mSlug').value=slugify(h.name)}
+async function openModal(d){editing=d||null;$('#mTitle').textContent=d?'Edit SQL':'Add detection';$('#mResult').innerHTML='';$('#mMsg').textContent='';$('#mParams').innerHTML='';$('#mOverwrite').checked=!!d;$('#mUpload').value='';
+ if(d){const j=await fetch('/api/detection?file='+encodeURIComponent(d.file)).then(r=>r.json());const base=d.file.split('/').pop().replace(/\.sql$/,'');const rk=(d.folder||base.split('_')[0]||'');$('#mSlug').value=base.replace(new RegExp('^'+rk+'_'),'');fillForm(j,j.sql,rk)}
+ else{$('#mName').value='';$('#mSlug').value='';$('#mSql').value=TEMPLATE;$('#mCat').value='Host intrusion signs'}
+ $('#modal').classList.add('open')}
+$('#mClose').onclick=()=>$('#modal').classList.remove('open');
+$('#mAddParam').onclick=()=>$('#mParams').appendChild(paramRow());
+$('#mRole').onchange=()=>{};
+$('#mUpload').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{const h=parseHeader(t);$('#mSlug').value=slugify(f.name.replace(/\.sql$/,'').replace(/^[^_]+_/,'')||f.name);fillForm(h,t)})};
+$('#mTest').onclick=async()=>{const j=await api('/api/test',{sql:$('#mSql').value,params:modalParams(),param_defs:readParams()});const el=$('#mResult');
+ el.innerHTML=(j.error?`<p class="err">Error: ${esc(j.error)}</p>`:`<p>${j.count} row(s) · ${j.ms} ms · columns: ${esc((j.columns||[]).join(', '))}</p>`)+`<ul class="check">${(j.checklist||[]).map(c=>`<li class="${c.pass?'pass':'fail'}">${c.pass?'✓':'✗'} ${esc(c.label)} — ${esc(c.detail||'')}</li>`).join('')}</ul>`+((j.rows&&j.rows.length)?`<div style="overflow:auto"><table><thead><tr>${j.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${j.rows.map(r=>`<tr>${j.columns.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'')};
+$('#mSave').onclick=async()=>{if(editing&&!confirm('Overwrite '+editing.file+'?'))return;const slug=$('#mSlug').value||slugify($('#mName').value);const j=await api('/api/save',{role:$('#mRole').value,slug,name:$('#mName').value,category:$('#mCat').value,params:readParams(),sql:$('#mSql').value,overwrite:$('#mOverwrite').checked||!!editing});
+ if(j.error){$('#mMsg').innerHTML=`<span class="err">${esc(j.error)}</span>`;return}$('#mMsg').innerHTML=`<span class="ok">Saved ${esc(j.file)}</span>`;sel=j.file;await load();$('#modal').classList.remove('open')};
 load();
 </script></body></html>
