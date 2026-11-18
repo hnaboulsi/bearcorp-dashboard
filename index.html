@@ -1,107 +1,352 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bearcorp threat hunt</title>
+<title>Bearcorp threat hunt · Team 11</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0b0c0e;color:#e8e9ec;font:14px/1.5 system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}
+:root{--bg:#0b0c0e;--panel:#141518;--panel2:#101114;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.1);--tx:#e8e9ec;--mut:#8b8d98;--mut2:#6f717c;--acc:#7c83ff;--acc-t:#a5a9ff;--ok:#3fb950;--err:#ff7b72;--warn:#e3b341;--r:10px}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:#101114;position:sticky;top:0;z-index:5}
-header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:-.01em}header .sp{flex:1}
-input,button,select{font:inherit;color:inherit}input[type=text],input[type=number]{background:#141518;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px}
-button{background:#7c83ff;color:#fff;border:0;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:550}
-button.ghost{background:#1a1b1f;color:#d6d7db;border:1px solid rgba(255,255,255,.08)}button:disabled{opacity:.45}
-#app{display:grid;grid-template-columns:250px 1fr;min-height:calc(100vh - 57px)}
-aside{border-right:1px solid rgba(255,255,255,.06);padding:14px;background:#0e0f12;overflow:auto}
-aside h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8b8d98;margin:16px 0 6px}
-.det{padding:8px 9px;border-radius:8px;cursor:pointer;border:1px solid transparent}.det:hover{background:#141518}.det.sel{background:#141518;border-color:rgba(255,255,255,.08)}
-.det .nm{font-size:13px}.chip{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(124,131,255,.14);color:#a5a9ff;margin-top:3px}
-.cnt{float:right;color:#8b8d98;font-size:12px}
-main{padding:18px;min-width:0}.panel{background:#141518;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;margin-bottom:14px}
-label{display:block;font-size:12px;color:#9a9ca8;margin:8px 0 3px}label small{color:#6f717c}
-table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.05);text-align:left;vertical-align:top}
-th{cursor:pointer;color:#9a9ca8;font-weight:550;white-space:nowrap}tr.finding{cursor:pointer}tr.finding:hover td{background:rgba(124,131,255,.06)}
-#drawer{position:fixed;top:0;right:0;width:min(520px,94vw);height:100%;background:#121316;border-left:1px solid rgba(255,255,255,.08);z-index:10;transform:translateX(105%);transition:.2s;overflow:auto;padding:18px}
-#drawer.open{transform:none}.ev{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600}
-.kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:13px}.kv dt{color:#8b8d98}.err{color:#ff7b72}.ok{color:#3fb950}
-progress{width:160px;accent-color:#7c83ff}
-#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px}
-#modal.open{display:flex}.mbox{background:#121316;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px;width:min(860px,96vw)}
-#modal textarea{width:100%;background:#0b0c0e;color:#e8e9ec;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
-#modal input[type=text],#modal select{background:#141518;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;color:inherit}
-.prow{display:grid;grid-template-columns:1.2fr .7fr 1fr 2fr auto;gap:6px;margin:5px 0}.check li.pass{color:#3fb950}.check li.fail{color:#ff7b72}
+header{padding:14px 20px 12px;border-bottom:1px solid var(--line);background:var(--panel2);position:sticky;top:0;z-index:6}
+.hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:650;letter-spacing:-.02em}
+header h1 .dotsep{color:var(--mut2);font-weight:400}
+.sub{color:var(--mut);font-size:12.5px}
+.sp{flex:1}
+input,button,select,textarea{font:inherit;color:inherit}
+input[type=text],input[type=number],select{background:#0f1013;border:1px solid var(--line2);border-radius:8px;padding:6px 9px;outline:none}
+input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,131,255,.18)}
+button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:550;font-size:13px}
+button:hover{filter:brightness(1.08)}button.ghost{background:#1a1b1f;color:#d6d7db;border:1px solid var(--line2)}button:disabled{opacity:.45;cursor:default}
+.howto{margin-top:8px;font-size:13px;color:#c6c8d1;background:rgba(124,131,255,.08);border:1px solid rgba(124,131,255,.22);border-radius:8px;padding:7px 11px}
+.howto b{color:var(--acc-t);font-weight:650}
+#overview{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.ov{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:9px 12px;min-width:132px}
+.ov .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut)}
+.ov .v{font-size:20px;font-weight:650;letter-spacing:-.02em;line-height:1.25}
+.ov.wide{min-width:260px;flex:1}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;padding:2px 8px 2px 6px;border-radius:20px;border:1px solid;white-space:nowrap}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;flex:none}
+.chip .n{opacity:.75;font-weight:500}
+.rolechips{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.rchip{font-size:11px;padding:2px 8px;border-radius:20px;background:#1a1b1f;border:1px solid var(--line2);color:#c6c8d1}
+.rchip b{color:#fff}
+#app{display:grid;grid-template-columns:272px 1fr;min-height:calc(100vh - 57px)}
+aside{border-right:1px solid var(--line);padding:12px;background:#0e0f12;overflow:auto;position:sticky;top:0;align-self:start;max-height:100vh}
+.role-h{display:flex;align-items:center;gap:7px;width:100%;background:none;border:0;color:var(--tx);padding:8px 6px 5px;cursor:pointer;text-align:left}
+.role-h .rn{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#c6c8d1;font-weight:650}
+.role-h .rc{font-size:11px;color:var(--mut)}
+.role-h .chev{color:var(--mut2);font-size:10px;transition:.15s;margin-left:auto}
+.role-h.closed .chev{transform:rotate(-90deg)}
+.det{padding:8px 9px;border-radius:8px;cursor:pointer;border:1px solid transparent;margin:1px 0}
+.det:hover{background:var(--panel)}.det.sel{background:var(--panel);border-color:var(--line2)}
+.det .nm{font-size:13px;font-weight:550}
+.det .meta{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.sdot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+.sdot.idle{background:#484f58}.sdot.running{background:var(--acc);animation:pulse 1s infinite}.sdot.done{background:var(--ok)}.sdot.error{background:var(--err)}
+@keyframes pulse{50%{opacity:.35}}
+.stxt{font-size:10.5px;color:var(--mut)}
+.cnt{margin-left:auto;color:var(--mut);font-size:12px}
+main{padding:18px;min-width:0;max-width:1180px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.panel h2{margin:0 0 2px;font-size:17px;letter-spacing:-.01em}
+label.fl{display:block;font-size:13px;color:#d6d7db;margin:12px 0 3px;font-weight:550}
+label.fl .pname{color:var(--mut2);font-weight:400;margin-left:6px}
+.hint{font-size:11.5px;color:var(--mut)}
+.auto{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--acc-t);background:rgba(124,131,255,.1);border:1px solid rgba(124,131,255,.25);padding:3px 9px;border-radius:20px;font-weight:600}
+.auto i{width:7px;height:7px;border-radius:50%;background:var(--acc);display:inline-block}
+.auto.live i{animation:pulse 1s infinite}
+input[type=number]{width:140px}
+.tagbox{display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#0f1013;border:1px solid var(--line2);border-radius:8px;padding:5px 6px;max-width:640px;cursor:text}
+.tagbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,131,255,.18)}
+.tag{display:inline-flex;align-items:center;gap:5px;background:rgba(124,131,255,.14);color:var(--acc-t);border:1px solid rgba(124,131,255,.3);font-size:12px;padding:2px 4px 2px 8px;border-radius:6px}
+.tag button{background:none;color:inherit;padding:0 3px;font-size:13px;line-height:1}
+.tagbox input{flex:1;min-width:120px;border:0!important;background:none!important;box-shadow:none!important;padding:3px 4px!important}
+.tblwrap{overflow:auto;margin-top:10px;border:1px solid var(--line);border-radius:8px;max-height:62vh}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.05);text-align:left;vertical-align:top}
+thead th{position:sticky;top:0;background:#1a1b1f;z-index:2;cursor:pointer;color:#9a9ca8;font-weight:600;white-space:nowrap;user-select:none}
+thead th:hover{color:#fff}
+tr.finding{cursor:pointer}tr.finding:hover td{background:rgba(124,131,255,.07)}
+tr.gh td{background:#101114;color:#c6c8d1;font-weight:650;font-size:12px;position:sticky}
+td.ev{color:#b9bbc6;max-width:340px;word-break:break-word}
+.empty{padding:34px 18px;text-align:center;color:var(--mut)}
+.empty .big{font-size:14px;color:#d6d7db;font-weight:600;margin-bottom:4px}
+.errbox{border:1px solid rgba(255,123,114,.4);background:rgba(255,123,114,.08);color:#ffb4ae;border-radius:8px;padding:10px 12px;font-size:13px;margin-top:10px;white-space:pre-wrap;word-break:break-word}
+.switch{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#c6c8d1;cursor:pointer}
+kbd{background:#1a1b1f;border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+#drawer{position:fixed;top:0;right:0;width:min(560px,96vw);height:100%;background:#121316;border-left:1px solid var(--line2);z-index:12;transform:translateX(105%);transition:transform .22s ease;overflow:auto;padding:20px;box-shadow:-16px 0 40px rgba(0,0,0,.45)}
+#drawer.open{transform:none}
+#drawer h3{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#c6c8d1}
+pre.code{background:#0b0c0e;border:1px solid var(--line);border-radius:8px;padding:11px;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;color:#d6d7db;max-height:260px;overflow:auto}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sumgrid .cell{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.sumgrid .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.sumgrid .val{font-weight:600;margin-top:1px;word-break:break-word}
+.ucard{display:flex;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px}
+.avatar{width:42px;height:42px;border-radius:50%;background:rgba(124,131,255,.18);color:var(--acc-t);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:3px 10px;font-size:12.5px;margin-top:6px}
+.kv dt{color:var(--mut)}.kv dd{margin:0;word-break:break-word}
+.tl{position:relative;margin:6px 0 0 6px;padding-left:22px}
+.tl:before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:1px;background:var(--line2)}
+.tli{position:relative;padding:7px 9px;border-radius:8px;margin-bottom:4px;border:1px solid transparent}
+.tli .tdot{position:absolute;left:-21px;top:13px;width:9px;height:9px;border-radius:50%;border:2px solid #121316}
+.tli.hit{background:rgba(124,131,255,.13);border-color:rgba(124,131,255,.4)}
+.tli .tt{color:var(--mut)}
+.ev{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:650;white-space:nowrap}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:20;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px}
+.modal.open{display:flex}
+.mbox{background:#121316;border:1px solid var(--line2);border-radius:12px;padding:20px;width:min(860px,96vw)}
+.mbox.sm{width:min(480px,96vw)}
+.mbox textarea{width:100%;background:#0b0c0e;color:var(--tx);border:1px solid var(--line2);border-radius:8px;padding:9px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.prow{display:grid;grid-template-columns:1.2fr .7fr 1fr 2fr auto;gap:6px;margin:5px 0}
+.check li.pass{color:var(--ok)}.check li.fail{color:var(--err)}
+.bar{height:6px;background:#1a1b1f;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc)}
+@media(max-width:820px){#app{grid-template-columns:1fr}aside{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line)}}
 </style></head><body>
-<header><h1>Bearcorp threat hunt</h1><span class="mono" id="total" style="color:#8b8d98"></span><span class="sp"></span>
-<label style="margin:0">Team <input type="text" id="team" value="11" size="4"></label>
-<progress id="prog" hidden></progress><span id="progTxt" class="mono"></span>
-<button class="ghost" id="runAll">Run all</button><button id="exportBtn">Export findings.json</button></header>
-<div id="app"><aside id="side"><div style="color:#8b8d98">Loading detections…</div></aside>
-<main id="main"><div class="panel">Select a detection on the left, then Run. Change any parameter and findings refresh automatically.</div></main></div>
-<div id="drawer"></div>
-<div id="modal"><div class="mbox"><button class="ghost" id="mClose" style="float:right">✕</button><h3 id="mTitle" style="margin-top:0">Add detection</h3>
-<label>Role <select id="mRole"><option value="dns">DNS</option><option value="web">Web</option><option value="endpoint">Endpoint</option><option value="identity">Identity</option></select></label>
-<label>Name <input type="text" id="mName" style="width:min(420px,90%)"></label>
-<label>Slug <small>[a-z0-9_], file becomes &lt;role&gt;_&lt;slug&gt;.sql</small><br><input type="text" id="mSlug" style="width:min(420px,90%)"></label>
-<label>Category <select id="mCat"></select></label>
-<label>Upload .sql file <input type="file" id="mUpload" accept=".sql"></label>
+<header>
+ <div class="hrow">
+  <h1>Bearcorp threat hunt <span class="dotsep">·</span> Team <span id="teamLabel">11</span></h1>
+  <span class="sub">Threat-hunt dashboard</span><span class="sp"></span>
+  <label class="sub" style="margin:0">Team <input type="text" id="team" value="11" size="4" aria-label="Team ID"></label>
+  <progress id="prog" hidden style="width:130px;accent-color:#7c83ff"></progress><span id="progTxt" class="mono"></span>
+  <button class="ghost" id="runAll">▶ Run all</button>
+  <button id="exportBtn">↓ Export findings.json</button>
+ </div>
+ <div class="howto"><b>How to use:</b> pick a detection, adjust its settings, click a finding to investigate, export when done &nbsp;·&nbsp; <span style="color:#8b8d98">Keys: <kbd>/</kbd> filter · <kbd>R</kbd> run selected · <kbd>Esc</kbd> close panel</span></div>
+ <div id="overview" aria-live="polite"></div>
+</header>
+<div id="app">
+ <aside id="side"><div style="color:#8b8d98;padding:6px">Loading detections…</div></aside>
+ <main id="main"><div class="panel"><div class="empty"><div class="big">Select a detection to begin</div>Pick a detection on the left, adjust its settings, and findings update automatically. Press <b>Run all</b> to run everything enabled.</div></div></main>
+</div>
+<div id="drawer" role="dialog" aria-label="Finding details"></div>
+
+<div class="modal" id="exportModal"><div class="mbox sm">
+ <button class="ghost" id="xClose" style="float:right">✕</button>
+ <h3 style="margin:0 0 4px">Export findings.json</h3>
+ <p class="hint" style="margin:0 0 10px">Preview from the findings currently on screen (enabled detections that have run). The download re-runs them on the server and writes <span class="mono">findings.json</span>.</p>
+ <div id="xPreview"></div>
+ <div style="margin-top:14px;display:flex;gap:8px;align-items:center"><button id="xDownload">Download findings.json</button><button class="ghost" id="xCancel">Cancel</button><span id="xMsg" class="hint"></span></div>
+</div></div>
+
+<div class="modal" id="modal"><div class="mbox"><button class="ghost" id="mClose" style="float:right">✕</button><h3 id="mTitle" style="margin-top:0">Add detection</h3>
+<label class="fl">Role <select id="mRole"><option value="dns">DNS</option><option value="web">Web</option><option value="endpoint">Endpoint</option><option value="identity">Identity</option></select></label>
+<label class="fl">Name <input type="text" id="mName" style="width:min(420px,90%)"></label>
+<label class="fl">Slug <span class="hint">[a-z0-9_], file becomes &lt;role&gt;_&lt;slug&gt;.sql</span><br><input type="text" id="mSlug" style="width:min(420px,90%)"></label>
+<label class="fl">Category <select id="mCat"></select></label>
+<label class="fl">Upload .sql file <input type="file" id="mUpload" accept=".sql"></label>
 <div style="margin:10px 0 4px;font-size:12px;color:#9a9ca8">Params (name, type, default, description)</div><div id="mParams"></div>
 <button class="ghost" id="mAddParam" type="button">+ Add param</button>
-<label>SQL</label><textarea id="mSql" rows="16" spellcheck="false"></textarea>
+<label class="fl">SQL</label><textarea id="mSql" rows="16" spellcheck="false"></textarea>
 <label style="display:inline"><input type="checkbox" id="mOverwrite"> overwrite existing file</label>
 <div style="margin-top:10px;display:flex;gap:8px"><button id="mTest" type="button">Test</button><button id="mSave" type="button">Save</button><span id="mMsg"></span></div>
 <div id="mResult"></div></div></div>
 <script>
-const $=s=>document.querySelector(s);let dets=[],state={},sel=null,sortK=null,sortD=1,filter='';
+const $=s=>document.querySelector(s);
+let dets=[],state={},sel=null,sortK='timestamp',sortD=1,filter='',groupHost=false,collapsed={},timer=null,seq=0;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:undefined);return r.json()}
-function paramsOf(d){const o={};(state[d.file]?.params)||(d.params||[]).forEach(p=>{o[p.name]=p.default});if(state[d.file]?.params)return{...o,...state[d.file].params};return o}
-function total(){let n=0;for(const k in state)n+=(state[k].rows||[]).length;$('#total').textContent=n+' findings'}
-async function load(){const j=await api('/api/detections');dets=j.detections||[];dets.forEach(d=>{if(!state[d.file])state[d.file]={enabled:true,params:{},rows:null,cols:[],ms:null,dropped:0}});
- if(!sel&&dets.length)sel=dets[0].file;renderSide();renderMain()}
-function renderSide(){const g={};dets.forEach(d=>{(g[d.role||'Other']=g[d.role||'Other']||[]).push(d)});
- $('#side').innerHTML=`<button id="addDet" style="width:100%">+ Add detection</button>`+Object.keys(g).sort().map(r=>`<h3>${esc(r)}</h3>`+g[r].map(d=>{const s=state[d.file];
-  return `<div class="det ${d.file===sel?'sel':''}" data-f="${esc(d.file)}"><input type="checkbox" data-en="${esc(d.file)}" ${s.enabled?'checked':''}> <span class="nm">${esc(d.name)}</span><span class="cnt">${s.rows?s.rows.length:''}</span><br><span class="chip">${esc(d.category)}</span></div>`}).join('')).join('')||'No detections yet — add a .sql file to detections/';
+const CATC={'Known-bad indicators':'#ff7b72','Command and control':'#bc8cff','Reconnaissance':'#e3b341','Data theft':'#f0883e','Deceptive domains':'#f778ba','Malware delivery':'#ff9e64','Host intrusion signs':'#58a6ff','Lateral movement':'#79c0ff','Credential abuse':'#3fb950','multiple':'#8b8d98'};
+const catColor=c=>CATC[c]||'#8b8d98';
+const chip=c=>`<span class="chip" style="color:${catColor(c)};border-color:${catColor(c)}55;background:${catColor(c)}14"><i></i>${esc(c)}</span>`;
+const ROLES=['DNS','Web','Endpoint','Identity'];
+const EC={LOGIN:'#3fb950',LOGIN_FAIL:'#ff7b72',CMD:'#e3b341',NET_CONNECT:'#7c83ff',PROC_START:'#58a6ff',LOGOUT:'#8b8d98',DNS_QUERY:'#bc8cff',IP_ASSIGNED:'#6e7681',FILE_READ:'#f0883e',FILE_WRITE:'#f778ba',AUTH:'#3fb950',HTTP:'#79c0ff'};
+function humanize(n){return String(n).replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+function defVal(p){if(p.type==='list')return String(p.default??'').split(',').map(x=>x.trim()).filter(Boolean);return p.default??''}
+function paramsOf(d){const o={};(d.params||[]).forEach(p=>{o[p.name]=defVal(p)});const cur=state[d.file]?.params||{};for(const k in cur)o[k]=cur[k];return o}
+function allRows(){const out=[];dets.forEach(d=>{const s=state[d.file];if(s&&s.rows)s.rows.forEach(r=>out.push({r,d}))});return out}
+function renderOverview(){
+ const pairs=allRows(),totalN=pairs.length;
+ const byCat={},hosts=new Set(),byRole={};ROLES.forEach(r=>byRole[r]=0);
+ pairs.forEach(({r,d})=>{byCat[r.category]=(byCat[r.category]||0)+1;if(r.host)hosts.add(r.host);const role=d.role||'Other';if(role in byRole)byRole[role]++;else byRole[role]=(byRole[role]||0)+1});
+ const runN=dets.filter(d=>state[d.file]&&state[d.file].status==='done'||state[d.file]&&state[d.file].status==='error').length;
+ $('#overview').innerHTML=
+  `<div class="ov"><div class="k">Total findings</div><div class="v" id="ovTotal">${totalN}</div><div class="hint">${runN} of ${dets.length} detections run · updates after Run all</div></div>`
+ +`<div class="ov wide"><div class="k">Findings per category</div><div class="chips">${Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]).map(c=>`<span class="chip" style="color:${catColor(c)};border-color:${catColor(c)}55;background:${catColor(c)}14"><i></i>${esc(c)} <span class="n">${byCat[c]}</span></span>`).join('')||'<span class="hint">No findings yet — run a detection</span>'}</div></div>`
+ +`<div class="ov wide"><div class="k">Per role</div><div class="rolechips">${ROLES.map(r=>`<span class="rchip">${r} <b>${byRole[r]||0}</b></span>`).join('')}</div></div>`
+ +`<div class="ov"><div class="k">Hosts affected</div><div class="v">${hosts.size}</div><div class="hint">${hosts.size===1?'unique host':'unique hosts'} in findings</div></div>`;
+}
+function total(){renderOverview()}
+async function load(){const j=await api('/api/detections');dets=j.detections||[];dets.forEach(d=>{if(!state[d.file])state[d.file]={enabled:true,params:{},rows:null,cols:[],ms:null,dropped:0,status:'idle',error:null}});
+ if(!sel&&dets.length)sel=dets[0].file;renderSide();renderOverview();renderMain()}
+function statusMeta(s){return{idle:['idle','Not run'],running:['running','Running…'],done:['done','Done'],error:['error','Error']}[s]||['idle',s]}
+function renderSide(){
+ const g={};dets.forEach(d=>{(g[d.role||'Other']=g[d.role||'Other']||[]).push(d)});
+ const order=[...ROLES,...Object.keys(g).filter(r=>!ROLES.includes(r))];
+ $('#side').innerHTML=`<button id="addDet" style="width:100%">+ Add detection</button>`
+ +order.filter(r=>g[r]).map(r=>{const list=g[r],fc=list.reduce((a,d)=>a+((state[d.file].rows||[]).length),0),isC=!!collapsed[r];
+  return `<button class="role-h ${isC?'closed':''}" data-role="${esc(r)}"><span class="rn">${esc(r)}</span><span class="rc">${list.length} detection${list.length===1?'':'s'} · ${fc} finding${fc===1?'':'s'}</span><span class="chev">▾</span></button>`
+  +(isC?'':list.map(d=>{const s=state[d.file],[cls,txt]=statusMeta(s.status);
+   return `<div class="det ${d.file===sel?'sel':''}" data-f="${esc(d.file)}" title="${esc(txt)}"><div style="display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-en="${esc(d.file)}" ${s.enabled?'checked':''} title="Include in Run all / Export" style="margin-top:3px"><span class="nm" style="flex:1">${esc(d.name)}</span><span class="cnt" title="Findings">${s.rows?s.rows.length:''}</span></div><div class="meta"><span class="sdot ${cls}" title="${esc(txt)}"></span><span class="stxt">${esc(txt)}${s.status==='done'&&s.ms!=null?' · '+s.ms+' ms':''}</span>${chip(d.category)}</div></div>`}).join(''))}).join('')||'<p class="hint" style="padding:6px">No detections yet — add a .sql file to detections/</p>';
+ document.querySelectorAll('.role-h').forEach(b=>b.onclick=()=>{collapsed[b.dataset.role]=!collapsed[b.dataset.role];renderSide()});
  document.querySelectorAll('.det').forEach(e=>e.onclick=ev=>{if(ev.target.type==='checkbox')return;sel=e.dataset.f;renderSide();renderMain()});
  document.querySelectorAll('[data-en]').forEach(c=>c.onchange=()=>{state[c.dataset.en].enabled=c.checked});
- const ab=$('#addDet');if(ab)ab.onclick=()=>openModal()}
+ const ab=$('#addDet');if(ab)ab.onclick=()=>openModal();
+}
 function cur(){return dets.find(d=>d.file===sel)}
-let timer;
-function renderMain(){const d=cur();if(!d){$('#main').innerHTML='';return}const s=state[d.file],p=paramsOf(d);
- const cols=s.cols||[];let rows=(s.rows||[]).filter(r=>!filter||JSON.stringify(r).toLowerCase().includes(filter));
- if(sortK)rows=[...rows].sort((a,b)=>String(a[sortK]??'').localeCompare(String(b[sortK]??''))*sortD);
+function tagHTML(p,val){
+ const tags=Array.isArray(val)?val:String(val||'').split(',').map(x=>x.trim()).filter(Boolean);
+ return `<div class="tagbox" data-tagbox="${esc(p.name)}">${tags.map(t=>`<span class="tag">${esc(t)}<button type="button" data-untag="${esc(p.name)}" data-val="${esc(t)}" title="Remove">×</button></span>`).join('')}<input type="text" data-taginput="${esc(p.name)}" placeholder="Type and press Enter…" value=""></div><div class="hint">Tag list — Enter or comma adds a tag, × removes one.</div>`;
+}
+function settingsHTML(d,s,p){
+ if(!(d.params&&d.params.length))return '<p class="hint">This detection has no settings — just run it.</p>';
+ return d.params.map(pp=>{
+  const label=pp.description?esc(pp.description):esc(humanize(pp.name));
+  const v=p[pp.name];
+  let input='';
+  if(pp.type==='int')input=`<input type="number" step="1" data-p="${esc(pp.name)}" data-ptype="int" value="${esc(v)}" style="width:160px">`;
+  else if(pp.type==='float')input=`<input type="number" step="0.1" data-p="${esc(pp.name)}" data-ptype="float" value="${esc(v)}" style="width:160px">`;
+  else if(pp.type==='list')input=tagHTML(pp,v);
+  else input=`<input type="text" data-p="${esc(pp.name)}" data-ptype="text" value="${esc(v)}" style="width:min(520px,92%)">`;
+  return `<label class="fl" style="margin-bottom:2px">${label}<span class="pname mono">${esc(pp.name)} · ${esc(pp.type)} · default: ${esc(pp.default)}</span></label>${input}`;
+ }).join('');
+}
+function sortedRows(s){
+ let rows=(s.rows||[]).filter(r=>!filter||JSON.stringify(r).toLowerCase().includes(filter));
+ if(sortK)rows=[...rows].sort((a,b)=>String(a[sortK]??'').localeCompare(String(b[sortK]??''),undefined,{numeric:true})*sortD);
+ if(groupHost)rows=[...rows].sort((a,b)=>String(a.host||'').localeCompare(String(b.host||''))||String(a.timestamp||'').localeCompare(String(b.timestamp||'')));
+ return rows;
+}
+function renderMain(){
+ const d=cur();if(!d){$('#main').innerHTML='';return}
+ const s=state[d.file],p=paramsOf(d),cols=s.cols||[];
  const extra=cols.filter(c=>!['category','timestamp','host','user','process','evidence'].includes(c));
- $('#main').innerHTML=`<div class="panel"><h2 style="margin:0 0 2px;font-size:16px">${esc(d.name)}</h2>
- <span class="chip">${esc(d.category)}</span> <span class="mono" style="color:#8b8d98">${esc(d.file)}</span>
- ${(d.params||[]).map(pp=>`<label>${esc(pp.name)} <small>${esc(pp.type)} — ${esc(pp.description)}</small><br>
-   <input type="text" data-p="${esc(pp.name)}" value="${esc(p[pp.name])}" style="width:min(420px,90%)"></label>`).join('')}
- <div style="margin-top:10px"><button id="run">Run</button> <button class="ghost" id="editSql">Edit SQL</button> ${s.ms!=null?`<span class="mono">${s.ms} ms · ${s.rows.length} findings${s.dropped?` · <span class="err">${s.dropped} dropped (invalid category)</span>`:''}</span>`:''} <span id="rerr" class="err"></span></div></div>
- <div class="panel"><input type="text" id="filt" placeholder="Filter findings…" value="${esc(filter)}" style="width:260px">
- <div style="overflow:auto;margin-top:10px"><table><thead><tr>${['category','timestamp','host','user','process','evidence',...extra].map(c=>`<th data-s="${esc(c)}">${esc(c)} ↕</th>`).join('')}</tr></thead>
- <tbody>${rows.map((r,i)=>`<tr class="finding" data-i="${(s.rows||[]).indexOf(r)}">${['category','timestamp','host','user','process','evidence',...extra].map(c=>`<td class="${['timestamp','host','process'].includes(c)?'mono':''}">${esc(r[c])}</td>`).join('')}</tr>`).join('')||'<tr><td>No rows. Run the detection.</td></tr>'}</tbody></table></div></div>`;
- $('#run').onclick=()=>run(d);const eb=$('#editSql');if(eb)eb.onclick=()=>openModal(d);
- document.querySelectorAll('[data-p]').forEach(inp=>inp.oninput=()=>{state[d.file].params[inp.dataset.p]=inp.value;clearTimeout(timer);timer=setTimeout(()=>run(d),600)});
- $('#filt').oninput=e=>{filter=e.target.value.toLowerCase();renderMain();const f=$('#filt');f.focus();f.setSelectionRange(f.value.length,f.value.length)};
+ const colList=['category','timestamp','host','user','process','evidence',...extra];
+ const rows=sortedRows(s);
+ let tbody='';
+ if(s.status==='error'){tbody=`<tr><td colspan="${colList.length}"><div class="errbox"><b>Detection failed — SQLite error</b>\n${esc(s.error||'Unknown error')}\n\nCheck the settings above (e.g. a threshold or tag value the query cannot use), then it will re-run automatically.</div></td></tr>`}
+ else if(!s.rows){tbody=`<tr><td colspan="${colList.length}"><div class="empty"><div class="big">Not run yet</div>Click <b>Run</b> (or press <kbd>R</kbd>) to run “${esc(d.name)}”. Changing any setting above re-runs it automatically.</div></td></tr>`}
+ else if(!rows.length){tbody=`<tr><td colspan="${colList.length}"><div class="empty"><div class="big">${filter?'No findings match your filter':'No findings'}</div>${filter?'Clear the filter box to see all '+s.rows.length+' finding(s) for this detection.':'This detection ran and returned 0 rows. Try loosening a threshold or removing a tag above — findings update automatically.'}</div></td></tr>`}
+ else{
+  let lastHost=null;
+  tbody=rows.map(r=>{let gh='';
+   if(groupHost&&r.host!==lastHost){lastHost=r.host;const n=rows.filter(x=>x.host===r.host).length;gh=`<tr class="gh"><td colspan="${colList.length}">🖥 <span class="mono">${esc(r.host)}</span> · ${n} finding${n===1?'':'s'}</td></tr>`}
+   return gh+`<tr class="finding" data-i="${(s.rows||[]).indexOf(r)}">${colList.map(c=>c==='category'?`<td>${chip(r[c])}</td>`:`<td class="${['timestamp','host','process','user'].includes(c)?'mono':''} ${c==='evidence'?'ev':''}">${esc(r[c])}</td>`).join('')}</tr>`}).join('');
+ }
+ $('#main').innerHTML=
+ `<div class="panel"><div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1;min-width:220px"><h2>${esc(d.name)}</h2><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">${chip(d.category)}<span class="mono" style="color:#8b8d98">${esc(d.file)}</span><span class="sdot ${statusMeta(s.status)[0]}"></span><span class="stxt">${esc(statusMeta(s.status)[1])}</span></div></div>
+ <span class="auto ${s.status==='running'?'live':''}" id="autoInd"><i></i>${s.status==='running'?'Updating…':'Updates automatically'}</span></div>
+ ${settingsHTML(d,s,p)}
+ <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button id="run">▶ Run <span style="opacity:.7">(R)</span></button><button class="ghost" id="resetBtn">Reset to defaults</button><button class="ghost" id="editSql">Edit SQL</button>
+ ${s.ms!=null&&s.status!=='error'?`<span class="mono" style="color:#8b8d98">${s.ms} ms · ${(s.rows||[]).length} findings${s.dropped?` · <span style="color:#ff7b72">${s.dropped} dropped (invalid category)</span>`:''}</span>`:''}</div>
+ ${s.status==='error'?`<div class="errbox"><b>SQLite error:</b> ${esc(s.error||'')}</div>`:''}
+ </div>
+ <div class="panel"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="text" id="filt" placeholder="Filter findings…  ( / )" value="${esc(filter)}" style="width:280px;max-width:70vw"><label class="switch"><input type="checkbox" id="groupHost" ${groupHost?'checked':''}> Group by host</label><span class="hint">${s.rows?rows.length+' shown · '+(s.rows.length)+' total — click a row to investigate →':''}</span><span class="sp"></span><span class="hint">Click a column header to sort</span></div>
+ <div class="tblwrap"><table><thead><tr>${colList.map(c=>`<th data-s="${esc(c)}">${esc(c)}${sortK===c?(sortD>0?' ▲':' ▼'):' <span style="opacity:.4">↕</span>'}</th>`).join('')}</tr></thead><tbody>${tbody}</tbody></table></div></div>`;
+ $('#run').onclick=()=>run(d);
+ $('#resetBtn').onclick=()=>{state[d.file].params={};(d.params||[]).forEach(pp=>state[d.file].params[pp.name]=defVal(pp));renderMain();run(d)};
+ const eb=$('#editSql');if(eb)eb.onclick=()=>openModal(d);
+ document.querySelectorAll('[data-p]').forEach(inp=>inp.oninput=()=>{let v=inp.value;if(inp.dataset.ptype==='int'&&v!=='')v=parseInt(v);else if(inp.dataset.ptype==='float'&&v!=='')v=parseFloat(v);state[d.file].params[inp.dataset.p]=v;scheduleRun(d)});
+ document.querySelectorAll('[data-tagbox]').forEach(box=>{
+  const name=box.dataset.tagbox,input=box.querySelector('[data-taginput]');
+  box.onclick=e=>{if(e.target.tagName!=='BUTTON')input.focus()};
+  input.onkeydown=e=>{
+   if(e.key==='Enter'||e.key===','){e.preventDefault();addTag(name,input.value);input.value=''}
+   else if(e.key==='Backspace'&&!input.value){const arr=getTags(name);arr.pop();setTags(name,arr)}
+  };
+  input.onblur=()=>{if(input.value.trim()){addTag(name,input.value);input.value=''}};
+ });
+ document.querySelectorAll('[data-untag]').forEach(b=>b.onclick=e=>{e.stopPropagation();setTags(b.dataset.untag,getTags(b.dataset.untag).filter(t=>t!==b.dataset.val))});
+ const f=$('#filt');f.oninput=e=>{filter=e.target.value.toLowerCase();const pos=f.selectionStart;renderMain();const nf=$('#filt');nf.focus();nf.setSelectionRange(pos,pos)};
+ const gh=$('#groupHost');if(gh)gh.onchange=()=>{groupHost=gh.checked;renderMain()};
  document.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;sortD=sortK===k?-sortD:1;sortK=k;renderMain()});
- document.querySelectorAll('tr.finding').forEach(tr=>tr.onclick=()=>openDrawer(d,(s.rows||[])[+tr.dataset.i]))}
-async function run(d){const s=state[d.file];s.params=paramsOf(d);const j=await api('/api/run',{file:d.file,params:s.params});
- s.cols=j.columns||[];s.rows=j.error?[]:(j.rows||[]);s.ms=j.ms;s.dropped=j.dropped||0;total();renderSide();renderMain();
- if(j.error)$('#rerr').textContent='Error: '+j.error}
-$('#runAll').onclick=async()=>{const en=dets.filter(d=>state[d.file].enabled);$('#prog').hidden=false;$('#prog').max=en.length;
- for(let i=0;i<en.length;i++){$('#prog').value=i+1;$('#progTxt').textContent=(i+1)+'/'+en.length+' '+en[i].file;sel=en[i].file;await run(en[i])}
- $('#progTxt').textContent='Done';setTimeout(()=>{$('#prog').hidden=true;$('#progTxt').textContent=''},2500)};
-$('#exportBtn').onclick=async()=>{const runs=dets.filter(d=>state[d.file].enabled).map(d=>({file:d.file,params:paramsOf(d)}));
- const j=await api('/api/export',{team_id:$('#team').value||'11',runs});
- const blob=new Blob([JSON.stringify({team_id:j.team_id,findings:j.findings},null,2)],{type:'application/json'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='findings.json';a.click();URL.revokeObjectURL(a.href)};
-const EC={LOGIN:'#3fb950',LOGIN_FAIL:'#ff7b72',CMD:'#d29922',NET_CONNECT:'#7c83ff',PROC_START:'#58a6ff',LOGOUT:'#8b8d98',DNS_QUERY:'#bc8cff',IP_ASSIGNED:'#6e7681'};
-async function openDrawer(d,r){if(!r)return;const dr=$('#drawer');dr.classList.add('open');
- dr.innerHTML=`<button class="ghost" id="close" style="float:right">✕</button><h3 style="margin-top:0">Finding</h3>
- <dl class="kv">${Object.entries(r).map(([k,v])=>`<dt>${esc(k)}</dt><dd class="mono">${esc(v)}</dd>`).join('')}</dl>
- <h4>Evidence</h4><p class="mono" style="white-space:pre-wrap">${esc(r.evidence??'—')}</p>
- <h4>User</h4><div id="u">Loading…</div><h4>Host timeline ±30 min</h4><div id="tl">Loading…</div>`;
- $('#close').onclick=()=>dr.classList.remove('open');
- const [tj,uj]=await Promise.all([api('/api/timeline',{host:r.host,ts:r.timestamp,minutes:30}),fetch('/api/user?name='+encodeURIComponent(r.user)).then(x=>x.json())]);
- $('#u').innerHTML=uj.user?`<dl class="kv">${Object.entries(uj.user).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:'<span style="color:#8b8d98">Not in users table.</span>';
- $('#tl').innerHTML=tj.error?`<span class="err">${esc(tj.error)}</span>`:`<table><tbody>${(tj.rows||[]).map(t=>{const hit=t.ts===r.timestamp&&t.process===r.process;
-  return `<tr ${hit?'style="background:rgba(124,131,255,.18)"':''}><td class="mono">${esc(t.ts)}</td><td><span class="ev" style="background:${EC[t.event]||'#333'}33;color:${EC[t.event]||'#aaa'}">${esc(t.event)}</span></td><td class="mono">${esc(t.user)}</td><td class="mono">${esc(t.process)}</td><td class="mono">${esc(t.target)}</td></tr>`}).join('')||'<tr><td>No events.</td></tr>'}</tbody></table>`}
+ document.querySelectorAll('tr.finding').forEach(tr=>tr.onclick=()=>openDrawer(d,(s.rows||[])[+tr.dataset.i]));
+}
+function getTags(name){const d=cur(),v=paramsOf(d)[name];return Array.isArray(v)?[...v]:String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+function setTags(name,arr){const d=cur();state[d.file].params[name]=arr;renderMainTagsOnly(name,arr);scheduleRun(d)}
+function addTag(name,raw){raw.split(',').map(x=>x.trim()).filter(Boolean).forEach(t=>{const a=getTags(name);if(!a.includes(t))a.push(t);state[cur().file].params[name]=a});const d=cur();renderMainTagsOnly(name,state[d.file].params[name]);scheduleRun(d)}
+function renderMainTagsOnly(name,arr){
+ // re-render settings area only via full render, preserving tag input focus
+ renderMain();const inp=document.querySelector(`[data-taginput="${CSS.escape(name)}"]`);if(inp)inp.focus();
+}
+function scheduleRun(d){const s=state[d.file];const ind=$('#autoInd');if(ind){ind.classList.add('live');ind.lastChild.textContent=' Updating…'}clearTimeout(timer);timer=setTimeout(()=>run(d),600)}
+function preserveAndRender(){const a=document.activeElement;const key=a&&(a.dataset?(a.dataset.p||a.dataset.taginput):null);const isFilt=a&&a.id==='filt';const pos=a&&a.selectionStart;renderMain();let el=null;if(isFilt)el=$('#filt');else if(key)el=document.querySelector(`[data-p="${CSS.escape(key)}"],[data-taginput="${CSS.escape(key)}"]`);if(el){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
+async function run(d){
+ const s=state[d.file],my=++seq;s.status='running';s.error=null;renderSide();
+ const ind=$('#autoInd');if(ind&&sel===d.file){ind.classList.add('live')}
+ let j;try{j=await api('/api/run',{file:d.file,params:paramsOf(d)})}catch(e){j={error:String(e)}}
+ s.cols=j.columns||[];s.ms=j.ms;s.dropped=j.dropped||0;
+ if(j.error){s.status='error';s.error=j.error;s.rows=[]}else{s.status='done';s.error=null;s.rows=j.rows||[]}
+ renderSide();renderOverview();if(sel===d.file)preserveAndRender();
+}
+$('#runAll').onclick=async()=>{
+ const en=dets.filter(d=>state[d.file].enabled);$('#prog').hidden=false;$('#prog').max=en.length||1;
+ for(let i=0;i<en.length;i++){$('#prog').value=i+1;$('#progTxt').textContent=(i+1)+'/'+en.length+' '+en[i].file;sel=en[i].file;renderSide();await run(en[i])}
+ $('#progTxt').textContent='Done — '+allRows().length+' findings';renderOverview();setTimeout(()=>{$('#prog').hidden=true;$('#progTxt').textContent=''},3000);
+ if(en.length) {sel=en[en.length-1].file;renderSide();renderMain()}
+};
+// ---- Export with preview ----
+function exportPreview(){
+ const seen=new Set(),byCat={};let totalN=0;
+ dets.filter(d=>state[d.file].enabled).forEach(d=>{(state[d.file].rows||[]).forEach(r=>{const key=[r.category,r.timestamp,r.host,String(r.user).toLowerCase(),String(r.process).toLowerCase()].join('|');if(seen.has(key))return;seen.add(key);totalN++;byCat[r.category]=(byCat[r.category]||0)+1})});
+ return{totalN,byCat};
+}
+$('#exportBtn').onclick=()=>{
+ const{totalN,byCat}=exportPreview();$('#xMsg').textContent='';
+ $('#xPreview').innerHTML= totalN?`<div class="ov" style="margin-bottom:10px"><div class="k">Findings to export</div><div class="v">${totalN}</div></div><div class="chips">${Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]).map(c=>`<span class="chip" style="color:${catColor(c)};border-color:${catColor(c)}55;background:${catColor(c)}14"><i></i>${esc(c)} <span class="n">${byCat[c]}</span></span>`).join('')}</div>`
+ :`<div class="empty"><div class="big">Nothing to export yet</div>Run a detection (or Run all) first, then export — the preview count by category will appear here.</div>`;
+ $('#xDownload').disabled=!totalN;
+ $('#exportModal').classList.add('open');
+};
+function closeExport(){$('#exportModal').classList.remove('open')}
+$('#xClose').onclick=closeExport;$('#xCancel').onclick=closeExport;
+$('#exportModal').addEventListener('click',e=>{if(e.target.id==='exportModal')closeExport()});
+$('#xDownload').onclick=async()=>{
+ $('#xDownload').disabled=true;$('#xMsg').textContent='Preparing…';
+ try{
+  const runs=dets.filter(d=>state[d.file].enabled).map(d=>({file:d.file,params:paramsOf(d)}));
+  const j=await api('/api/export',{team_id:$('#team').value||'11',runs});
+  if(j.error){$('#xMsg').innerHTML='<span style="color:#ff7b72">Export error: '+esc(j.error)+'</span>';return}
+  const blob=new Blob([JSON.stringify({team_id:j.team_id,findings:j.findings},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='findings.json';a.click();URL.revokeObjectURL(a.href);
+  $('#xMsg').textContent='Downloaded '+(j.findings||[]).length+' findings.';setTimeout(closeExport,700);
+ }finally{$('#xDownload').disabled=false}
+};
+$('#team').addEventListener('input',e=>{$('#teamLabel').textContent=e.target.value||'11'});
+// ---- Triage drawer ----
+async function openDrawer(d,r){
+ if(!r)return;const dr=$('#drawer');dr.classList.add('open');
+ const evText=Array.isArray(r.evidence)?r.evidence.join('\n'):String(r.evidence??'—');
+ dr.innerHTML=`<button class="ghost" id="close" style="float:right">✕ Esc</button>
+ <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">${chip(r.category)}<span class="mono" style="color:#8b8d98">${esc(d.file)}</span></div>
+ <h2 style="margin:8px 0 0;font-size:17px;line-height:1.3">${esc(r.host||'')} <span style="color:#6f717c">·</span> ${esc(r.process||'')}</h2>
+ <div class="mono" style="color:#8b8d98">${esc(r.timestamp||'')} · user ${esc(r.user||'')}</div>
+ <div class="sumgrid">
+  <div class="cell"><div class="k">Host</div><div class="val mono">${esc(r.host)}</div></div>
+  <div class="cell"><div class="k">User</div><div class="val mono">${esc(r.user)}</div></div>
+  <div class="cell"><div class="k">Process</div><div class="val mono">${esc(r.process)}</div></div>
+  <div class="cell"><div class="k">Time</div><div class="val mono">${esc(r.timestamp)}</div></div>
+  ${Object.entries(r).filter(([k])=>!['category','timestamp','host','user','process','evidence'].includes(k)).map(([k,v])=>`<div class="cell"><div class="k">${esc(k)}</div><div class="val mono">${esc(v)}</div></div>`).join('')}
+ </div>
+ <h3>Evidence</h3><pre class="code">${esc(evText)}</pre>
+ <div style="display:flex;gap:8px"><button class="ghost" id="copyJson">⧉ Copy as JSON</button><span id="copyMsg" class="hint" style="align-self:center"></span></div>
+ <h3>User profile</h3><div id="u">Loading…</div>
+ <h3>Host timeline · ±30 min</h3><p class="hint" style="margin:0 0 6px">Events on <span class="mono">${esc(r.host)}</span> around this finding. The finding itself is highlighted.</p><div id="tl">Loading…</div>`;
+ $('#close').onclick=closeDrawer;
+ $('#copyJson').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(r,null,2));$('#copyMsg').textContent='Copied to clipboard.'}catch(e){$('#copyMsg').textContent='Copy failed — select the evidence above.'}};
+ const[tj,uj]=await Promise.all([api('/api/timeline',{host:r.host,ts:r.timestamp,minutes:30}),fetch('/api/user?name='+encodeURIComponent(r.user||'')).then(x=>x.json()).catch(()=>({user:null}))]);
+ if(!dr.classList.contains('open'))return;
+ const u=uj.user;
+ $('#u').innerHTML=u?`<div class="ucard"><div class="avatar">${esc(String(u.user||'?').slice(0,2).toUpperCase())}</div><div style="flex:1;min-width:0"><div style="font-weight:650;font-size:15px">${esc(u.user)}</div><div class="hint">${esc(u.department||'—')} · ${esc(u.role||'—')} · workstation <span class="mono">${esc(u.workstation||'—')}</span></div><dl class="kv">${Object.entries(u).filter(([k])=>!['user','department','role','workstation'].includes(k)).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div></div>`:'<span style="color:#8b8d98">Not in users table — this account has no profile (often a service or unknown account; treat with extra suspicion).</span>';
+ if(tj.error){$('#tl').innerHTML=`<div class="errbox">Timeline error: ${esc(tj.error)}</div>`}
+ else{
+  const rows=tj.rows||[];
+  $('#tl').innerHTML=rows.length?`<div class="tl">${rows.map(t=>{const hit=String(t.ts)===String(r.timestamp)&&String(t.process)===String(r.process);const col=EC[t.event]||'#8b8d98';
+   return `<div class="tli ${hit?'hit':''}"><span class="tdot" style="background:${col}"></span><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="mono tt">${esc(t.ts)}</span><span class="ev" style="background:${col}26;color:${col}">${esc(t.event)}</span>${hit?'<span class="chip" style="color:#a5a9ff;border-color:#7c83ff66;background:#7c83ff1a"><i></i>This finding</span>':''}</div><div class="mono" style="color:#b9bbc6;margin-top:2px">${esc(t.user)} · ${esc(t.process)}${t.target?' → '+esc(t.target):''}</div></div>`}).join('')}</div>`:'<div class="empty"><div class="big">No events in this window</div>No host events within ±30 minutes of this finding.</div>';
+ }
+}
+function closeDrawer(){$('#drawer').classList.remove('open')}
+// ---- Keyboard shortcuts ----
+document.addEventListener('keydown',e=>{
+ const tag=(document.activeElement&&document.activeElement.tagName)||'';
+ const typing=['INPUT','TEXTAREA','SELECT'].includes(tag);
+ if(e.key==='Escape'){closeDrawer();closeExport();$('#modal').classList.remove('open');return}
+ if(typing)return;
+ if(e.key==='/'){e.preventDefault();const f=$('#filt');if(f){f.focus();f.select()}return}
+ if(e.key==='r'||e.key==='R'){const d=cur();if(d)run(d)}
+});
 const CATS=["Known-bad indicators","Command and control","Reconnaissance","Data theft","Deceptive domains","Malware delivery","Host intrusion signs","Lateral movement","Credential abuse","multiple"];
 $('#mCat').innerHTML=CATS.map(c=>`<option>${esc(c)}</option>`).join('');
 const TEMPLATE=`SELECT
@@ -133,11 +378,11 @@ async function openModal(d){editing=d||null;$('#mTitle').textContent=d?'Edit SQL
  $('#modal').classList.add('open')}
 $('#mClose').onclick=()=>$('#modal').classList.remove('open');
 $('#mAddParam').onclick=()=>$('#mParams').appendChild(paramRow());
-$('#mRole').onchange=()=>{};
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').classList.remove('open')});
 $('#mUpload').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{const h=parseHeader(t);$('#mSlug').value=slugify(f.name.replace(/\.sql$/,'').replace(/^[^_]+_/,'')||f.name);fillForm(h,t)})};
 $('#mTest').onclick=async()=>{const j=await api('/api/test',{sql:$('#mSql').value,params:modalParams(),param_defs:readParams()});const el=$('#mResult');
- el.innerHTML=(j.error?`<p class="err">Error: ${esc(j.error)}</p>`:`<p>${j.count} row(s) · ${j.ms} ms · columns: ${esc((j.columns||[]).join(', '))}</p>`)+`<ul class="check">${(j.checklist||[]).map(c=>`<li class="${c.pass?'pass':'fail'}">${c.pass?'✓':'✗'} ${esc(c.label)} — ${esc(c.detail||'')}</li>`).join('')}</ul>`+((j.rows&&j.rows.length)?`<div style="overflow:auto"><table><thead><tr>${j.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${j.rows.map(r=>`<tr>${j.columns.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'')};
+ el.innerHTML=(j.error?`<p style="color:#ff7b72">Error: ${esc(j.error)}</p>`:`<p>${j.count} row(s) · ${j.ms} ms · columns: ${esc((j.columns||[]).join(', '))}</p>`)+`<ul class="check">${(j.checklist||[]).map(c=>`<li class="${c.pass?'pass':'fail'}">${c.pass?'✓':'✗'} ${esc(c.label)} — ${esc(c.detail||'')}</li>`).join('')}</ul>`+((j.rows&&j.rows.length)?`<div style="overflow:auto"><table><thead><tr>${j.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${j.rows.map(r=>`<tr>${j.columns.map(c=>`<td>${esc(r[c])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'')};
 $('#mSave').onclick=async()=>{if(editing&&!confirm('Overwrite '+editing.file+'?'))return;const slug=$('#mSlug').value||slugify($('#mName').value);const j=await api('/api/save',{role:$('#mRole').value,slug,name:$('#mName').value,category:$('#mCat').value,params:readParams(),sql:$('#mSql').value,overwrite:$('#mOverwrite').checked||!!editing});
- if(j.error){$('#mMsg').innerHTML=`<span class="err">${esc(j.error)}</span>`;return}$('#mMsg').innerHTML=`<span class="ok">Saved ${esc(j.file)}</span>`;sel=j.file;await load();$('#modal').classList.remove('open')};
+ if(j.error){$('#mMsg').innerHTML=`<span style="color:#ff7b72">${esc(j.error)}</span>`;return}$('#mMsg').innerHTML=`<span style="color:#3fb950">Saved ${esc(j.file)}</span>`;sel=j.file;await load();$('#modal').classList.remove('open')};
 load();
 </script></body></html>
