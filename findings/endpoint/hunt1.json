@@ -1,0 +1,131 @@
+{
+  "team_id": "TEAM_ID_TBD",
+  "findings": [
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-12T15:09:44.979Z",
+      "host": "WS-5038",
+      "user": "tina193",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-13T03:58:31.387Z",
+      "host": "WS-9093",
+      "user": "sam349",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-13T04:30:38.015Z",
+      "host": "WS-1545",
+      "user": "karen59",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-13T19:00:44.625Z",
+      "host": "WS-6726",
+      "user": "rachel258",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T08:57:17.564Z",
+      "host": "WS-1315",
+      "user": "omar50",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T13:08:36.708Z",
+      "host": "LAB-07",
+      "user": "labuser4",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T13:48:27.968Z",
+      "host": "WS-1434",
+      "user": "dave55",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T21:58:12.657Z",
+      "host": "WS-2251",
+      "user": "omar86",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T23:01:11.772Z",
+      "host": "WS-4229",
+      "user": "quinn162",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T23:56:35.225Z",
+      "host": "WS-5746",
+      "user": "zack220",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T01:43:42.581Z",
+      "host": "WS-1194",
+      "user": "xavier45",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T04:44:42.081Z",
+      "host": "WS-1091",
+      "user": "yvonne41",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T15:32:53.313Z",
+      "host": "WS-0711",
+      "user": "irene27",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T20:06:48.102Z",
+      "host": "WS-2565",
+      "user": "quinn98",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-16T07:53:11.988Z",
+      "host": "WS-4166",
+      "user": "frank160",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-16T08:08:08.252Z",
+      "host": "WS-3395",
+      "user": "omar130",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-16T09:06:55.645Z",
+      "host": "WS-3118",
+      "user": "xavier119",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-16T11:50:58.154Z",
+      "host": "WS-5519",
+      "user": "grace212",
+      "process": "bash"
+    }
+  ]
+}

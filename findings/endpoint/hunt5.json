@@ -1,0 +1,103 @@
+{
+  "team_id": "TEAM_ID_TBD",
+  "findings": [
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-12T12:18:44.757Z",
+      "host": "WS-2983",
+      "user": "sam114",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-12T20:09:18.456Z",
+      "host": "WS-5616",
+      "user": "zack215",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-13T05:31:05.985Z",
+      "host": "WS-3295",
+      "user": "sam126",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-13T17:13:21.755Z",
+      "host": "WS-6786",
+      "user": "zack260",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T10:55:01.141Z",
+      "host": "WS-6789",
+      "user": "carol261",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T16:33:23.290Z",
+      "host": "WS-3730",
+      "user": "leo143",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-14T20:55:06.962Z",
+      "host": "WS-0469",
+      "user": "alice18",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-14T22:24:56.144Z",
+      "host": "WS-7788",
+      "user": "nina299",
+      "process": "bash"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T07:35:28.534Z",
+      "host": "WS-3906",
+      "user": "frank150",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T07:59:52.179Z",
+      "host": "WS-8691",
+      "user": "grace334",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T14:59:25.679Z",
+      "host": "WS-8350",
+      "user": "dave321",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-15T18:31:51.275Z",
+      "host": "WS-8119",
+      "user": "grace312",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-16T08:11:21.560Z",
+      "host": "WS-7919",
+      "user": "omar304",
+      "process": "plugin-host"
+    },
+    {
+      "category": "Malware delivery",
+      "timestamp": "2026-10-16T11:41:46.853Z",
+      "host": "WS-2210",
+      "user": "zack84",
+      "process": "bash"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bearcorp threat hunt</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0c0e;color:#e8e9ec;font:14px/1.5 system-ui,-apple-system,sans-serif}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:#101114;position:sticky;top:0;z-index:5}
+header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:-.01em}header .sp{flex:1}
+input,button,select{font:inherit;color:inherit}input[type=text],input[type=number]{background:#141518;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px}
+button{background:#7c83ff;color:#fff;border:0;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:550}
+button.ghost{background:#1a1b1f;color:#d6d7db;border:1px solid rgba(255,255,255,.08)}button:disabled{opacity:.45}
+#app{display:grid;grid-template-columns:250px 1fr;min-height:calc(100vh - 57px)}
+aside{border-right:1px solid rgba(255,255,255,.06);padding:14px;background:#0e0f12;overflow:auto}
+aside h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8b8d98;margin:16px 0 6px}
+.det{padding:8px 9px;border-radius:8px;cursor:pointer;border:1px solid transparent}.det:hover{background:#141518}.det.sel{background:#141518;border-color:rgba(255,255,255,.08)}
+.det .nm{font-size:13px}.chip{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(124,131,255,.14);color:#a5a9ff;margin-top:3px}
+.cnt{float:right;color:#8b8d98;font-size:12px}
+main{padding:18px;min-width:0}.panel{background:#141518;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;margin-bottom:14px}
+label{display:block;font-size:12px;color:#9a9ca8;margin:8px 0 3px}label small{color:#6f717c}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.05);text-align:left;vertical-align:top}
+th{cursor:pointer;color:#9a9ca8;font-weight:550;white-space:nowrap}tr.finding{cursor:pointer}tr.finding:hover td{background:rgba(124,131,255,.06)}
+#drawer{position:fixed;top:0;right:0;width:min(520px,94vw);height:100%;background:#121316;border-left:1px solid rgba(255,255,255,.08);z-index:10;transform:translateX(105%);transition:.2s;overflow:auto;padding:18px}
+#drawer.open{transform:none}.ev{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:13px}.kv dt{color:#8b8d98}.err{color:#ff7b72}.ok{color:#3fb950}
+progress{width:160px;accent-color:#7c83ff}
+</style></head><body>
+<header><h1>Bearcorp threat hunt</h1><span class="mono" id="total" style="color:#8b8d98"></span><span class="sp"></span>
+<label style="margin:0">Team <input type="text" id="team" value="11" size="4"></label>
+<progress id="prog" hidden></progress><span id="progTxt" class="mono"></span>
+<button class="ghost" id="runAll">Run all</button><button id="exportBtn">Export findings.json</button></header>
+<div id="app"><aside id="side"><div style="color:#8b8d98">Loading detections…</div></aside>
+<main id="main"><div class="panel">Select a detection on the left, then Run. Change any parameter and findings refresh automatically.</div></main></div>
+<div id="drawer"></div>
+<script>
+const $=s=>document.querySelector(s);let dets=[],state={},sel=null,sortK=null,sortD=1,filter='';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:undefined);return r.json()}
+function paramsOf(d){const o={};(state[d.file]?.params)||(d.params||[]).forEach(p=>{o[p.name]=p.default});if(state[d.file]?.params)return{...o,...state[d.file].params};return o}
+function total(){let n=0;for(const k in state)n+=(state[k].rows||[]).length;$('#total').textContent=n+' findings'}
+async function load(){const j=await api('/api/detections');dets=j.detections||[];dets.forEach(d=>{if(!state[d.file])state[d.file]={enabled:true,params:{},rows:null,cols:[],ms:null,dropped:0}});
+ if(!sel&&dets.length)sel=dets[0].file;renderSide();renderMain()}
+function renderSide(){const g={};dets.forEach(d=>{(g[d.role||'Other']=g[d.role||'Other']||[]).push(d)});
+ $('#side').innerHTML=Object.keys(g).sort().map(r=>`<h3>${esc(r)}</h3>`+g[r].map(d=>{const s=state[d.file];
+  return `<div class="det ${d.file===sel?'sel':''}" data-f="${esc(d.file)}"><input type="checkbox" data-en="${esc(d.file)}" ${s.enabled?'checked':''}> <span class="nm">${esc(d.name)}</span><span class="cnt">${s.rows?s.rows.length:''}</span><br><span class="chip">${esc(d.category)}</span></div>`}).join('')).join('')||'No detections yet — add a .sql file to detections/';
+ document.querySelectorAll('.det').forEach(e=>e.onclick=ev=>{if(ev.target.type==='checkbox')return;sel=e.dataset.f;renderSide();renderMain()});
+ document.querySelectorAll('[data-en]').forEach(c=>c.onchange=()=>{state[c.dataset.en].enabled=c.checked})}
+function cur(){return dets.find(d=>d.file===sel)}
+let timer;
+function renderMain(){const d=cur();if(!d){$('#main').innerHTML='';return}const s=state[d.file],p=paramsOf(d);
+ const cols=s.cols||[];let rows=(s.rows||[]).filter(r=>!filter||JSON.stringify(r).toLowerCase().includes(filter));
+ if(sortK)rows=[...rows].sort((a,b)=>String(a[sortK]??'').localeCompare(String(b[sortK]??''))*sortD);
+ const extra=cols.filter(c=>!['category','timestamp','host','user','process','evidence'].includes(c));
+ $('#main').innerHTML=`<div class="panel"><h2 style="margin:0 0 2px;font-size:16px">${esc(d.name)}</h2>
+ <span class="chip">${esc(d.category)}</span> <span class="mono" style="color:#8b8d98">${esc(d.file)}</span>
+ ${(d.params||[]).map(pp=>`<label>${esc(pp.name)} <small>${esc(pp.type)} — ${esc(pp.description)}</small><br>
+   <input type="text" data-p="${esc(pp.name)}" value="${esc(p[pp.name])}" style="width:min(420px,90%)"></label>`).join('')}
+ <div style="margin-top:10px"><button id="run">Run</button> ${s.ms!=null?`<span class="mono">${s.ms} ms · ${s.rows.length} findings${s.dropped?` · <span class="err">${s.dropped} dropped (invalid category)</span>`:''}</span>`:''} <span id="rerr" class="err"></span></div></div>
+ <div class="panel"><input type="text" id="filt" placeholder="Filter findings…" value="${esc(filter)}" style="width:260px">
+ <div style="overflow:auto;margin-top:10px"><table><thead><tr>${['category','timestamp','host','user','process','evidence',...extra].map(c=>`<th data-s="${esc(c)}">${esc(c)} ↕</th>`).join('')}</tr></thead>
+ <tbody>${rows.map((r,i)=>`<tr class="finding" data-i="${(s.rows||[]).indexOf(r)}">${['category','timestamp','host','user','process','evidence',...extra].map(c=>`<td class="${['timestamp','host','process'].includes(c)?'mono':''}">${esc(r[c])}</td>`).join('')}</tr>`).join('')||'<tr><td>No rows. Run the detection.</td></tr>'}</tbody></table></div></div>`;
+ $('#run').onclick=()=>run(d);
+ document.querySelectorAll('[data-p]').forEach(inp=>inp.oninput=()=>{state[d.file].params[inp.dataset.p]=inp.value;clearTimeout(timer);timer=setTimeout(()=>run(d),600)});
+ $('#filt').oninput=e=>{filter=e.target.value.toLowerCase();renderMain();const f=$('#filt');f.focus();f.setSelectionRange(f.value.length,f.value.length)};
+ document.querySelectorAll('th[data-s]').forEach(th=>th.onclick=()=>{const k=th.dataset.s;sortD=sortK===k?-sortD:1;sortK=k;renderMain()});
+ document.querySelectorAll('tr.finding').forEach(tr=>tr.onclick=()=>openDrawer(d,(s.rows||[])[+tr.dataset.i]))}
+async function run(d){const s=state[d.file];s.params=paramsOf(d);const j=await api('/api/run',{file:d.file,params:s.params});
+ s.cols=j.columns||[];s.rows=j.error?[]:(j.rows||[]);s.ms=j.ms;s.dropped=j.dropped||0;total();renderSide();renderMain();
+ if(j.error)$('#rerr').textContent='Error: '+j.error}
+$('#runAll').onclick=async()=>{const en=dets.filter(d=>state[d.file].enabled);$('#prog').hidden=false;$('#prog').max=en.length;
+ for(let i=0;i<en.length;i++){$('#prog').value=i+1;$('#progTxt').textContent=(i+1)+'/'+en.length+' '+en[i].file;sel=en[i].file;await run(en[i])}
+ $('#progTxt').textContent='Done';setTimeout(()=>{$('#prog').hidden=true;$('#progTxt').textContent=''},2500)};
+$('#exportBtn').onclick=async()=>{const runs=dets.filter(d=>state[d.file].enabled).map(d=>({file:d.file,params:paramsOf(d)}));
+ const j=await api('/api/export',{team_id:$('#team').value||'11',runs});
+ const blob=new Blob([JSON.stringify({team_id:j.team_id,findings:j.findings},null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='findings.json';a.click();URL.revokeObjectURL(a.href)};
+const EC={LOGIN:'#3fb950',LOGIN_FAIL:'#ff7b72',CMD:'#d29922',NET_CONNECT:'#7c83ff',PROC_START:'#58a6ff',LOGOUT:'#8b8d98',DNS_QUERY:'#bc8cff',IP_ASSIGNED:'#6e7681'};
+async function openDrawer(d,r){if(!r)return;const dr=$('#drawer');dr.classList.add('open');
+ dr.innerHTML=`<button class="ghost" id="close" style="float:right">✕</button><h3 style="margin-top:0">Finding</h3>
+ <dl class="kv">${Object.entries(r).map(([k,v])=>`<dt>${esc(k)}</dt><dd class="mono">${esc(v)}</dd>`).join('')}</dl>
+ <h4>Evidence</h4><p class="mono" style="white-space:pre-wrap">${esc(r.evidence??'—')}</p>
+ <h4>User</h4><div id="u">Loading…</div><h4>Host timeline ±30 min</h4><div id="tl">Loading…</div>`;
+ $('#close').onclick=()=>dr.classList.remove('open');
+ const [tj,uj]=await Promise.all([api('/api/timeline',{host:r.host,ts:r.timestamp,minutes:30}),fetch('/api/user?name='+encodeURIComponent(r.user)).then(x=>x.json())]);
+ $('#u').innerHTML=uj.user?`<dl class="kv">${Object.entries(uj.user).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:'<span style="color:#8b8d98">Not in users table.</span>';
+ $('#tl').innerHTML=tj.error?`<span class="err">${esc(tj.error)}</span>`:`<table><tbody>${(tj.rows||[]).map(t=>{const hit=t.ts===r.timestamp&&t.process===r.process;
+  return `<tr ${hit?'style="background:rgba(124,131,255,.18)"':''}><td class="mono">${esc(t.ts)}</td><td><span class="ev" style="background:${EC[t.event]||'#333'}33;color:${EC[t.event]||'#aaa'}">${esc(t.event)}</span></td><td class="mono">${esc(t.user)}</td><td class="mono">${esc(t.process)}</td><td class="mono">${esc(t.target)}</td></tr>`}).join('')||'<tr><td>No events.</td></tr>'}</tbody></table>`}
+load();
+</script></body></html>
