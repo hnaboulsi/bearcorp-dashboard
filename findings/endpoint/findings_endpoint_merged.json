@@ -1008,6 +1008,48 @@
       "host": "WS-6411",
       "user": "omar246",
       "process": "firefox"
+    },
+    {
+      "category": "Reconnaissance",
+      "timestamp": "2026-10-14T00:02:40.458Z",
+      "host": "WS-9056",
+      "user": "henry348",
+      "process": "python3"
+    },
+    {
+      "category": "Reconnaissance",
+      "timestamp": "2026-10-14T05:15:16.577Z",
+      "host": "WS-3074",
+      "user": "frank118",
+      "process": "python3"
+    },
+    {
+      "category": "Reconnaissance",
+      "timestamp": "2026-10-14T10:18:33.341Z",
+      "host": "WS-5464",
+      "user": "dave210",
+      "process": "python3"
+    },
+    {
+      "category": "Reconnaissance",
+      "timestamp": "2026-10-14T10:45:54.934Z",
+      "host": "WS-9063",
+      "user": "omar348",
+      "process": "python3"
+    },
+    {
+      "category": "Reconnaissance",
+      "timestamp": "2026-10-14T14:04:46.787Z",
+      "host": "WS-0159",
+      "user": "carol6",
+      "process": "python3"
+    },
+    {
+      "category": "Host intrusion signs",
+      "timestamp": "2026-10-16T02:27:00.005Z",
+      "host": "WS-1314",
+      "user": "nina50",
+      "process": "bash"
     }
   ]
 }

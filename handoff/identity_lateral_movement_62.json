@@ -1,0 +1,439 @@
+{
+  "team_id": "11",
+  "findings": [
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T12:47:23.744Z",
+      "host": "WS-4465",
+      "user": "sam171",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T13:03:29.045Z",
+      "host": "WS-2926",
+      "user": "nina112",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T13:06:04.884Z",
+      "host": "WS-2755",
+      "user": "yvonne105",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T13:16:57.795Z",
+      "host": "WS-6650",
+      "user": "tina255",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T13:18:28.064Z",
+      "host": "WS-6935",
+      "user": "sam266",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T14:39:49.504Z",
+      "host": "WS-0190",
+      "user": "henry7",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T15:22:21.378Z",
+      "host": "WS-4085",
+      "user": "carol157",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T15:26:45.487Z",
+      "host": "WS-9139",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T15:34:06.527Z",
+      "host": "WS-5529",
+      "user": "quinn212",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T15:51:29.652Z",
+      "host": "WS-2679",
+      "user": "alice103",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-12T16:56:01.557Z",
+      "host": "WS-6916",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T09:18:33.620Z",
+      "host": "WS-3344",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T09:43:01.959Z",
+      "host": "WS-9405",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T10:13:05.875Z",
+      "host": "WS-1900",
+      "user": "bob73",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T10:40:43.241Z",
+      "host": "WS-2356",
+      "user": "paula90",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T10:54:12.771Z",
+      "host": "WS-0228",
+      "user": "tina8",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T10:54:59.572Z",
+      "host": "WS-0247",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T11:40:41.672Z",
+      "host": "WS-6270",
+      "user": "dave241",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T13:09:14.239Z",
+      "host": "WS-5738",
+      "user": "rachel220",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T13:23:48.972Z",
+      "host": "WS-5776",
+      "user": "dave222",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T13:32:10.696Z",
+      "host": "WS-0456",
+      "user": "nina17",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T14:41:29.428Z",
+      "host": "WS-3572",
+      "user": "jack137",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T14:54:50.071Z",
+      "host": "WS-8018",
+      "user": "jack308",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T15:19:47.990Z",
+      "host": "WS-2337",
+      "user": "wendy89",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-13T16:24:21.729Z",
+      "host": "WS-6232",
+      "user": "rachel239",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T09:05:25.783Z",
+      "host": "WS-5225",
+      "user": "yvonne200",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T10:00:15.388Z",
+      "host": "WS-4693",
+      "user": "mia180",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T10:02:19.582Z",
+      "host": "WS-8360",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T10:49:51.369Z",
+      "host": "WS-0152",
+      "user": "victor5",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T11:22:46.970Z",
+      "host": "WS-0304",
+      "user": "rachel11",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T11:30:12.858Z",
+      "host": "WS-6194",
+      "user": "frank238",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T11:57:02.811Z",
+      "host": "WS-7980",
+      "user": "xavier306",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T12:02:47.207Z",
+      "host": "WS-8987",
+      "user": "quinn345",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T12:35:40.721Z",
+      "host": "WS-0589",
+      "user": "quinn22",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T12:42:49.505Z",
+      "host": "WS-8379",
+      "user": "grace322",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T13:02:21.184Z",
+      "host": "WS-2242",
+      "user": "frank86",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T15:41:08.249Z",
+      "host": "WS-1520",
+      "user": "leo58",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T15:45:31.312Z",
+      "host": "WS-8626",
+      "user": "tina331",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-14T15:57:20.978Z",
+      "host": "WS-9747",
+      "user": "wendy374",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T09:36:29.552Z",
+      "host": "WS-7638",
+      "user": "tina293",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T11:06:21.186Z",
+      "host": "WS-7334",
+      "user": "bob282",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T12:00:16.177Z",
+      "host": "WS-4370",
+      "user": "bob168",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T12:15:02.335Z",
+      "host": "WS-4332",
+      "user": "paula166",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T13:08:30.897Z",
+      "host": "WS-3724",
+      "user": "frank143",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T13:34:07.313Z",
+      "host": "WS-0950",
+      "user": "nina36",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T13:40:30.350Z",
+      "host": "WS-1140",
+      "user": "victor43",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T14:25:07.941Z",
+      "host": "WS-5662",
+      "user": "tina217",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T15:33:16.503Z",
+      "host": "WS-5244",
+      "user": "rachel201",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T15:56:19.070Z",
+      "host": "WS-0133",
+      "user": "carol5",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-15T16:39:53.163Z",
+      "host": "WS-5282",
+      "user": "dave203",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T09:49:01.166Z",
+      "host": "WS-1292",
+      "user": "rachel49",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T10:05:05.853Z",
+      "host": "WS-3192",
+      "user": "tina122",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T10:46:01.030Z",
+      "host": "WS-0836",
+      "user": "dave32",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T11:13:49.420Z",
+      "host": "WS-1862",
+      "user": "paula71",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T11:35:31.988Z",
+      "host": "WS-5795",
+      "user": "wendy222",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T12:05:50.177Z",
+      "host": "WS-6707",
+      "user": "none",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T12:54:36.835Z",
+      "host": "WS-1615",
+      "user": "carol62",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T13:59:32.125Z",
+      "host": "WS-5624",
+      "user": "henry216",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T14:18:19.869Z",
+      "host": "WS-0855",
+      "user": "wendy32",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T14:35:31.956Z",
+      "host": "WS-9234",
+      "user": "dave355",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T15:35:30.530Z",
+      "host": "WS-7910",
+      "user": "frank304",
+      "process": "bash"
+    },
+    {
+      "category": "Lateral movement",
+      "timestamp": "2026-10-16T16:11:39.482Z",
+      "host": "WS-7847",
+      "user": "uma301",
+      "process": "bash"
+    }
+  ]
+}
